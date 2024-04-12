@@ -53,7 +53,7 @@ xcuserdata/
 # Xcode workspace - include specific workspaces if necessary
 *.xcworkspace
 # Uncomment the following line to check in your specific workspace
-# !default.xcworkspace/
+!higher-order-app.xcworkspace/
 
 # Build products
 build/

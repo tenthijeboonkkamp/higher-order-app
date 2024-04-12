@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		CDF7E19E2BC91A1E0093D676 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CDF7E19D2BC91A1E0093D676 /* Preview Assets.xcassets */; };
 		CDF7E1AA2BC91B110093D676 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CDF7E1A42BC91B110093D676 /* Preview Assets.xcassets */; };
 		CDF7E1AB2BC91B110093D676 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDF7E1A62BC91B110093D676 /* App.swift */; };
 		CDF7E1AC2BC91B110093D676 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CDF7E1A72BC91B110093D676 /* Assets.xcassets */; };
@@ -16,7 +15,6 @@
 
 /* Begin PBXFileReference section */
 		CDF7E1922BC91A1D0093D676 /* higher-order-app-example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "higher-order-app-example.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		CDF7E19D2BC91A1E0093D676 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		CDF7E1A42BC91B110093D676 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		CDF7E1A62BC91B110093D676 /* App.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		CDF7E1A72BC91B110093D676 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -40,7 +38,7 @@
 			isa = PBXGroup;
 			children = (
 				CDF7E1AD2BC91BAC0093D676 /* Example */,
-				CDF7E1942BC91A1D0093D676 /* higher-order-app-example */,
+				CDF7E1A92BC91B110093D676 /* iOS */,
 				CDF7E1932BC91A1D0093D676 /* Products */,
 				CDF7E1AE2BC91BFC0093D676 /* Frameworks */,
 			);
@@ -52,23 +50,6 @@
 				CDF7E1922BC91A1D0093D676 /* higher-order-app-example.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		CDF7E1942BC91A1D0093D676 /* higher-order-app-example */ = {
-			isa = PBXGroup;
-			children = (
-				CDF7E1A92BC91B110093D676 /* iOS */,
-				CDF7E19C2BC91A1E0093D676 /* Preview Content */,
-			);
-			path = "higher-order-app-example";
-			sourceTree = "<group>";
-		};
-		CDF7E19C2BC91A1E0093D676 /* Preview Content */ = {
-			isa = PBXGroup;
-			children = (
-				CDF7E19D2BC91A1E0093D676 /* Preview Assets.xcassets */,
-			);
-			path = "Preview Content";
 			sourceTree = "<group>";
 		};
 		CDF7E1A52BC91B110093D676 /* Preview Content */ = {
@@ -160,7 +141,6 @@
 			files = (
 				CDF7E1AA2BC91B110093D676 /* Preview Assets.xcassets in Resources */,
 				CDF7E1AC2BC91B110093D676 /* Assets.xcassets in Resources */,
-				CDF7E19E2BC91A1E0093D676 /* Preview Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
