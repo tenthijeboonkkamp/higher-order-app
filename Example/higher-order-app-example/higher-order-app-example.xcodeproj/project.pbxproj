@@ -7,10 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CD1D2CBC2BC92186004F2EA8 /* Application in Frameworks */ = {isa = PBXBuildFile; productRef = CD1D2CBB2BC92186004F2EA8 /* Application */; };
 		CDF7E1AA2BC91B110093D676 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CDF7E1A42BC91B110093D676 /* Preview Assets.xcassets */; };
 		CDF7E1AB2BC91B110093D676 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDF7E1A62BC91B110093D676 /* App.swift */; };
 		CDF7E1AC2BC91B110093D676 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CDF7E1A72BC91B110093D676 /* Assets.xcassets */; };
-		CDF7E1B02BC91BFC0093D676 /* ExampleApplication in Frameworks */ = {isa = PBXBuildFile; productRef = CDF7E1AF2BC91BFC0093D676 /* ExampleApplication */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -27,7 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				CDF7E1B02BC91BFC0093D676 /* ExampleApplication in Frameworks */,
+				CD1D2CBC2BC92186004F2EA8 /* Application in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -95,7 +95,7 @@
 			);
 			name = "higher-order-app-example";
 			packageProductDependencies = (
-				CDF7E1AF2BC91BFC0093D676 /* ExampleApplication */,
+				CD1D2CBB2BC92186004F2EA8 /* Application */,
 			);
 			productName = "higher-order-app-example";
 			productReference = CDF7E1922BC91A1D0093D676 /* higher-order-app-example.app */;
@@ -372,9 +372,9 @@
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		CDF7E1AF2BC91BFC0093D676 /* ExampleApplication */ = {
+		CD1D2CBB2BC92186004F2EA8 /* Application */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = ExampleApplication;
+			productName = Application;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -4,12 +4,12 @@
 import PackageDescription
 
 extension String {
-    static let exampleApplication: Self = "ExampleApplication"
+    static let application: Self = "Application"
     static let output: Self = "Output"
 }
 
 extension Target.Dependency {
-    static let exampleApplication: Self = .target(name: .exampleApplication)
+    static let application: Self = .target(name: .application)
     static let output: Self = .target(name: .output)
 }
 
@@ -31,8 +31,8 @@ let package = Package(
     platforms: [.iOS(.v17), .macOS(.v14)],
     products: [
         .library(
-            name: .exampleApplication,
-            targets: [.exampleApplication]
+            name: .application,
+            targets: [.application]
         ),
     ],
     dependencies: [
@@ -49,7 +49,7 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: .exampleApplication,
+            name: .application,
             dependencies: .shared + [.higherOrderApp, .output]
         ),
         .target(

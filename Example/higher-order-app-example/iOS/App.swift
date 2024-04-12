@@ -6,38 +6,19 @@
 //
 
 import SwiftUI
-import ExampleApplication
-import ComposableArchitecture
-
-extension ExampleApplication {
-    final class AppDelegate: NSObject, UIApplicationDelegate {
-        let store:StoreOf<ExampleApplication> = Store(
-            initialState: ExampleApplication.State.init()
-        ) {
-            ExampleApplication.default
-        }
-        
-        func application(
-            _ application: UIApplication,
-            didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
-        ) -> Bool {
-            self.store.send(.appDelegate(.didFinishLaunching))
-            return true
-        }
-    }
-}
+import Application
 
 @main
-struct ExampleApp: App {
-    @UIApplicationDelegateAdaptor(ExampleApplication.AppDelegate.self) private var appDelegate
+struct Main: App {
+    @UIApplicationDelegateAdaptor(Application.Delegate.self) private var delegate
     @Environment(\.scenePhase) private var scenePhase
     
     var body: some Scene {
         WindowGroup {
-            ExampleApplication.default(store: self.appDelegate.store)
+            Application.default(store: self.delegate.store)
         }
         .onChange(of: self.scenePhase) { _, newPhase in
-            self.appDelegate.store.send(.didChangeScenePhase(newPhase))
+            self.delegate.store.send(.didChangeScenePhase(newPhase))
         }
     }
 }
