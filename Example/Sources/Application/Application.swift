@@ -35,6 +35,8 @@ extension Application {
                         Text("store.output.calculation == false")
                     }
                     
+                    Text("\(store.output?.string ?? "")")
+                    
                     TextField("string", text: $store.input.string)
                     Bool?.View(
                         question: "question?",

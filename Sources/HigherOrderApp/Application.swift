@@ -74,6 +74,8 @@ public struct HigherOrderApp<
         }
     }
     
+    @Dependency(\.mainQueue) var mainQueue
+    
     public var body: some ReducerOf<Self> {
         Scope(state: \.collectionFeature, action: \.collectionFeature) {
             CollectionFeature<Input, Output>(input: input)
@@ -93,10 +95,12 @@ public struct HigherOrderApp<
                         try await send(.setOutput(output(input)))
                     }
                 case let .inputUpdated(input):
-                    print("inputUpdated")
                     return .run { send in
-                        try await send(.setOutput(output(input)))
+                        let output = try await output(input)
+                        await send(.setOutput(output))
+                        
                     }
+                    .throttle(id: ThrottleID.inputUpdated, for: .milliseconds(300), scheduler: mainQueue, latest: true)
                 }
             case let .setOutput(output):
                 print("setOutput")
@@ -157,3 +161,5 @@ extension HigherOrderApp {
         }
     }
 }
+
+fileprivate enum ThrottleID { case inputUpdated }
