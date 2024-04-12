@@ -8,7 +8,6 @@ extension String {
     static let collectionFeature: Self = "CollectionFeature"
     static let elementFeature: Self = "ElementFeature"
     static let views: Self = "Views"
-    static let example: Self = "Example"
 }
 
 extension Target.Dependency {
@@ -16,7 +15,6 @@ extension Target.Dependency {
     static let collectionFeature: Self = .target(name: .collectionFeature)
     static let elementFeature: Self = .target(name: .elementFeature)
     static let views: Self = .target(name: .views)
-    static let example: Self = .target(name: .example)
 }
 
 extension Target.Dependency {

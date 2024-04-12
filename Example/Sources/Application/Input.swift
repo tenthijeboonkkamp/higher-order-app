@@ -10,8 +10,7 @@ import MemberwiseInit
 
 @MemberwiseInit(.public)
 public struct Input: Hashable, Codable {
-    @Init(default: nil)
-    public var bool: Bool?
-    @Init(default: "")
-    public var string:String
+    public var bool: Bool? = nil
+    public var string:String = ""
 }
+

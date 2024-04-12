@@ -15,7 +15,7 @@ public typealias Application = HigherOrderApp<Input, Output>
 
 extension Application {
     public static let `default`:Self = Application(
-        input: { Input() },
+        input: { Input.init() },
         output: Output.init
     )
 }
