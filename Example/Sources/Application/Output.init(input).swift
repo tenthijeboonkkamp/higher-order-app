@@ -9,7 +9,7 @@ import Foundation
 import Output
 
 extension Output {
-    public init(input: Input) {
+    public init (input: Input) async throws {
         self = .init(
             bool: input.bool,
             string: input.string

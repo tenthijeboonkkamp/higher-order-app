@@ -18,15 +18,11 @@ extension HigherOrderApp {
         
         public enum Action {
             case didFinishLaunching
+            case applicationWillTerminate
         }
         
         public var body: some ReducerOf<Self> {
-            Reduce { state, action in
-                switch action {
-                case .didFinishLaunching:
-                    return .none
-                }
-            }
+            EmptyReducer()
         }
     }
 }

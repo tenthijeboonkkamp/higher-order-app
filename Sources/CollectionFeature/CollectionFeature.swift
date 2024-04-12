@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 import ComposableArchitecture
 import MemberwiseInit
-import Row
+import Element
 
 
 
@@ -25,7 +25,7 @@ public struct CollectionFeature<
     @MemberwiseInit(.public)
     @ObservableState
     public struct State {
-        @Shared(.fileStorage(.documentsDirectory.appending(path: "rows.json"))) public var rows: IdentifiedArrayOf<Row<Input, Output>.State> = []
+        @Shared(.fileStorage(.documentsDirectory.appending(path: "elements.json"))) public var elements: IdentifiedArrayOf<Element<Input, Output>.State> = []
         @Presents public var destination: CollectionFeature.Destination.State?
         
         public init(destination: CollectionFeature.Destination.State? = nil) {
@@ -34,49 +34,49 @@ public struct CollectionFeature<
     }
     
     public enum Action {
-        case rows(IdentifiedActionOf<Row<Input, Output>>)
+        case elements(IdentifiedActionOf<Element<Input, Output>>)
         case destination(PresentationAction<CollectionFeature.Destination.Action>)
-        case rowButtonTapped(Row<Input, Output>.State)
-        case addRowButtonTapped
-        case deleteButtonTapped(id: Row<Input, Output>.State.ID)
+        case elementButtonTapped(Element<Input, Output>.State)
+        case addElementButtonTapped
+        case deleteButtonTapped(id: Element<Input, Output>.State.ID)
     }
     
     @Reducer(state: .equatable)
     public enum Destination {
-        case row(Row<Input, Output>)
+        case element(Element<Input, Output>)
     }
     
     public var body: some ReducerOf<Self> {
 
         Reduce { state, action in
             switch action {
-            case let .rowButtonTapped(row):
-                state.destination = .row(row)
+            case let .elementButtonTapped(element):
+                state.destination = .element(element)
                 return .none
-            case .addRowButtonTapped:
-                let row = Row<Input, Output>.State.init(input: input())
-                state.rows.append(row)
-                state.destination = .init(.row(row))
+            case .addElementButtonTapped:
+                let element = Element<Input, Output>.State.init(input: input())
+                state.elements.append(element)
+                state.destination = .init(.element(element))
                 return .none
-            case .rows, .destination:
+            case .elements, .destination:
                 return .none
             case .deleteButtonTapped(id: let id):
-                state.rows[id: id] = nil
+                state.elements[id: id] = nil
                 return .none
             }
         }
-        .forEach(\.rows, action: \.rows) {
-            Row<Input, Output>()
+        .forEach(\.elements, action: \.elements) {
+            Element<Input, Output>()
         }
         .ifLet(\.$destination, action: \.destination)
-        .onChange(of: \.destination?.row) { oldValue, newValue in
+        .onChange(of: \.destination?.element) { oldValue, newValue in
             Reduce { state, action in
                 
                 guard let id = newValue?.id else {
                     return .none
                 }
                 
-                state.rows[id: id] = newValue
+                state.elements[id: id] = newValue
                 return .none
             }
         }
@@ -87,13 +87,13 @@ public struct CollectionFeature<
         NavigationLinkLabelView: SwiftUI.View
     >: SwiftUI.View {
         @Bindable var store: StoreOf<CollectionFeature>
-        public let navigationLinkLabel: (Bindable<StoreOf<Row<Input, Output>>>)-> NavigationLinkLabelView
-        public let navigationLinkDestination: (Bindable<StoreOf<Row<Input, Output>>>)-> NavigationLinkDestinationView
+        public let navigationLinkLabel: (Bindable<StoreOf<Element<Input, Output>>>)-> NavigationLinkLabelView
+        public let navigationLinkDestination: (Bindable<StoreOf<Element<Input, Output>>>)-> NavigationLinkDestinationView
         
         public init(
             store: StoreOf<CollectionFeature>,
-            @ViewBuilder navigationLinkLabel: @escaping (Bindable<StoreOf<Row<Input, Output>>>) -> NavigationLinkLabelView,
-            @ViewBuilder navigationLinkDestination: @escaping (Bindable<StoreOf<Row<Input, Output>>>) -> NavigationLinkDestinationView
+            @ViewBuilder navigationLinkLabel: @escaping (Bindable<StoreOf<Element<Input, Output>>>) -> NavigationLinkLabelView,
+            @ViewBuilder navigationLinkDestination: @escaping (Bindable<StoreOf<Element<Input, Output>>>) -> NavigationLinkDestinationView
         ) {
             self.store = store
             self.navigationLinkLabel = navigationLinkLabel
@@ -102,31 +102,33 @@ public struct CollectionFeature<
         
         public var body: some SwiftUI.View {
             List {
-                ForEach(store.scope(state: \.rows, action: \.rows)) { rowStore in
+                ForEach(store.scope(state: \.elements, action: \.elements)) { elementStore in
                     Button {
-                        store.send(.rowButtonTapped(rowStore.state))
+                        store.send(.elementButtonTapped(elementStore.state))
                     } label: {
-                        Row.LabelView.init(store: rowStore, navigationLinkLabel: navigationLinkLabel)
+                        Element.LabelView.init(store: elementStore, navigationLinkLabel: navigationLinkLabel)
                     }
                     .swipeActions(allowsFullSwipe: true) {
                         Button(role: .destructive){
-                            store.send(.deleteButtonTapped(id:  rowStore.id))
+                            store.send(.deleteButtonTapped(id:  elementStore.id))
                         } label: {
                             Text("Delete")
                         }
                     }
                 }
-                
             }
-            .navigationDestination(item: $store.scope(state: \.destination?.row, action: \.destination.row)) { localStore in
-                Row.DestinationView.init(store: localStore, navigationLinkDestination: navigationLinkDestination)
+            .navigationDestination(item: $store.scope(state: \.destination?.element, action: \.destination.element)) { localStore in
+                Element.DestinationView.init(store: localStore, navigationLinkDestination: navigationLinkDestination)
                     .onAppear{
                         localStore.send(.delegate(.onAppear(localStore.input)))
+                    }
+                    .onDisappear{
+                        localStore.send(.delegate(.onDissapear))
                     }
             }
             .toolbar {
                 Button {
-                    store.send(.addRowButtonTapped)
+                    store.send(.addElementButtonTapped)
                 } label: {
                     Image(systemName: "plus")
                 }

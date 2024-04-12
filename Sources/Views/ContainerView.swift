@@ -10,10 +10,7 @@ import SwiftUI
 import MemberwiseInit
 
 public struct Container<Header:SwiftUI.View, Body:SwiftUI.View, Label:SwiftUI.View>: SwiftUI.View {
-    //    <Header: SwiftUI.View, Body: SwiftUI.View>
-    //    let header:()->Header
-    //    let body:()->Body
-    
+
     let header_view: ()->Header
     let body_view: ()->Body
     let action: ()->Void
@@ -94,96 +91,10 @@ public struct Container<Header:SwiftUI.View, Body:SwiftUI.View, Label:SwiftUI.Vi
     }
 }
 
-public struct Card<Content: SwiftUI.View>: SwiftUI.View {
-    
-    let variant:Variant
-    let content: ()-> Content
-    
-    public enum Variant {
-        case systemGroupedBackground
-        case shadow
-    }
-    
-    public init(
-        _ variant: Variant = .systemGroupedBackground,
-        @ViewBuilder _ content: @escaping () -> Content
-    ) {
-        self.variant = variant
-        self.content = content
-    }
-    
-    var background: Color {
-        switch variant {
-        case .systemGroupedBackground:
-            return Color(.systemGroupedBackground)
-        case .shadow:
-            return .clear
-        }
-    }
-    
-    public var body: some SwiftUI.View {
-        VStack(alignment: .leading) {
-            VStack(alignment: .leading) {
-                content()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .padding()
-            .background(background)
-        }
-        .shadow(color: Color.black.opacity(0.1), radius: 5, x: 0, y: 2)
-        
-        .cornerRadius(8)
-    }
-}
 
-public struct Source: SwiftUI.View, Hashable {
-    public let title: String
-    public let source: String
-    
-    public init(title: String, source: String) {
-        self.title = title
-        self.source = source
-    }
-    
-    public var body: some SwiftUI.View {
-        Card {
-            Text(title)
-                .font(.subheadline)
-            Text(source)
-                .font(.footnote)
-                .foregroundStyle(.secondary)
-        }
-    }
-}
 
-extension [Source] {
-    
-    public struct View:SwiftUI.View {
-    
-        
-        public let sources:[Source]
-        
-        public init(sources: [Source]) {
-            self.sources = sources
-        }
-        
-        public var body: some SwiftUI.View {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Sources")
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .padding(.bottom)
-                
-                VStack(alignment: .leading) {
-                    
-                    ForEach(sources, id: \.self) { source in
-                        source
-                    }
-                }
-            }
-        }
-    }
-}
+
+
 
 
 #Preview {

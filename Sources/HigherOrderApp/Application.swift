@@ -8,9 +8,8 @@
 import ComposableArchitecture
 import SwiftUI
 import MemberwiseInit
-//import Onboarding
 import CollectionFeature
-import Row
+import Element
 import Combine
 
 @MemberwiseInit(.public)
@@ -19,9 +18,9 @@ public struct HigherOrderApp<
     Input: Codable & Hashable,
     Output: Codable & Hashable
 > {
-    
-    public let input: ()->Input
-    public let output: (Input)->Output
+
+    public let input: () -> Input
+    public let output: (Input) async throws -> Output
     
     @Reducer
     public struct Destination {
@@ -51,7 +50,7 @@ public struct HigherOrderApp<
     public struct State {
         public var appDelegate: HigherOrderApp.Delegate.State
         @Presents public var destination: HigherOrderApp.Destination.State?
-        @Shared(.fileStorage(.documentsDirectory.appending(path: "rows.json"))) public var rows: IdentifiedArrayOf<Row<Input, Output>.State> = []
+        @Shared(.fileStorage(.documentsDirectory.appending(path: "elements.json"))) public var elements: IdentifiedArrayOf<Element<Input, Output>.State> = []
         @Shared(.fileStorage(.documentsDirectory.appending(path: "output.json"))) var output:Output? = nil
         public var collectionFeature: CollectionFeature<Input, Output>.State
         
@@ -72,6 +71,7 @@ public struct HigherOrderApp<
         case didChangeScenePhase(ScenePhase)
         case destination(PresentationAction<Destination.Action>)
         case collectionFeature(CollectionFeature<Input, Output>.Action)
+        case setOutput(Output)
     }
     
     public var body: some ReducerOf<Self> {
@@ -81,53 +81,46 @@ public struct HigherOrderApp<
         
         Reduce { state, action in
             switch action {
-            case let .collectionFeature(.destination(.presented(.row(.delegate(.onAppear(input)))))):
-                print("test")
-                state.output = output(input)
-//                state.rows[id:id]?.output = output(input)
+            case let .collectionFeature(.destination(.presented(.element(.delegate(delegate))))):
+                switch delegate {
+                case let .onAppear(input):
+                    print("onAppear")
+                    return .run { send in
+                        try await send(.setOutput(output(input)))
+                    }
+                case let .inputUpdated(input):
+                    print("inputUpdated")
+                    return .run { send in
+                        try await send(.setOutput(output(input)))
+                    }
+                case .onDissapear:
+                    print("onDissapear")
+                    state.output = nil
+                    return .none
+                }
+            case let .setOutput(output):
+                print("setOutput")
+                state.output = output
                 return .none
-            case let .collectionFeature(.destination(.presented(.row(.delegate(.inputUpdated(input)))))):
-                print("test2")
-                state.output = output(input)
-//                state.rows[id:id]?.output = output(input)
+            default:
+                return .none
+            }
+            
+        }
+        
+        Reduce { state, action in
+            print(state.output == nil ? "nil" : "some")
+            
+            switch action {
+            case .appDelegate(.applicationWillTerminate):
+                state.output = nil
                 return .none
             default:
                 return .none
             }
         }
-        
-        Scope(state: \.self, action: \.collectionFeature.rows.element) {
-            Reduce { state, action in
-                
-                switch action {
-//                case let .destination(.collectionFeature(collectionFeature)):
-//                    return .none
-//                case let (id, .delegate(.onAppear(input))):
-//                    print("case let (id, .delegate(.onAppear(input))):")
-//                    state.output = output(input)
-//                    state.rows[id:id]?.output = output(input)
-//                    return .none
-//                    
-//                case let (id, .delegate(.inputUpdated(input))):
-//                    print("case let (id, .delegate(.inputUpdated(input))):")
-//                    state.output = output(input)
-//                    state.rows[id:id]?.output = output(input)
-//                    return .none
-                default:
-                    return .none
-                }
-            }
-        }
-
-        Reduce { state, action in
-            switch action {
-            case .appDelegate, .didChangeScenePhase, .destination, .collectionFeature:
-                return .none
-            }
-        }
     }
 }
-
 
 extension HigherOrderApp {
     public struct View<
@@ -135,13 +128,13 @@ extension HigherOrderApp {
         NavigationLinkLabelView: SwiftUI.View
     >: SwiftUI.View {
         @Bindable var store:StoreOf<HigherOrderApp>
-        public let navigationLinkLabel: (Bindable<StoreOf<Row<Input, Output>>>)-> NavigationLinkLabelView
-        public let navigationLinkDestination: (Bindable<StoreOf<Row<Input, Output>>>)-> NavigationLinkDestinationView
-
+        public let navigationLinkLabel: (Bindable<StoreOf<Element<Input, Output>>>)-> NavigationLinkLabelView
+        public let navigationLinkDestination: (Bindable<StoreOf<Element<Input, Output>>>)-> NavigationLinkDestinationView
+        
         public init(
             store: StoreOf<HigherOrderApp>,
-            @ViewBuilder navigationLinkLabel: @escaping (Bindable<StoreOf<Row<Input, Output>>>) -> NavigationLinkLabelView,
-            @ViewBuilder navigationLinkDestination: @escaping (Bindable<StoreOf<Row<Input, Output>>>) -> NavigationLinkDestinationView
+            @ViewBuilder navigationLinkLabel: @escaping (Bindable<StoreOf<Element<Input, Output>>>) -> NavigationLinkLabelView,
+            @ViewBuilder navigationLinkDestination: @escaping (Bindable<StoreOf<Element<Input, Output>>>) -> NavigationLinkDestinationView
         ) {
             self.store = store
             self.navigationLinkLabel = navigationLinkLabel
@@ -159,11 +152,3 @@ extension HigherOrderApp {
         }
     }
 }
-
-
-
-//            if store.collectionFeature.rows.count < 1 {
-//                Onboarding.View(store: store.scope(state: \.onboarding, action: \.onboarding))
-//            } else {
-//                Text("More than 1 row already added")
-//            }

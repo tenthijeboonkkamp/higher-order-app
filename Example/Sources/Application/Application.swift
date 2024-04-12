@@ -61,5 +61,9 @@ extension Application {
             self.store.send(.appDelegate(.didFinishLaunching))
             return true
         }
+        
+        public func applicationWillTerminate(_ application: UIApplication) {
+            self.store.send(.appDelegate(.applicationWillTerminate))
+        }
     }
 }
