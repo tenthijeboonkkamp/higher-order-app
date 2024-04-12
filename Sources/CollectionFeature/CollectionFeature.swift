@@ -123,7 +123,7 @@ public struct CollectionFeature<
                         localStore.send(.delegate(.onAppear(localStore.input)))
                     }
                     .onDisappear{
-                        localStore.send(.delegate(.onDissapear))
+                        localStore.send(.delegate(.onDisappear))
                     }
             }
             .toolbar {

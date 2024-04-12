@@ -56,10 +56,9 @@ public struct ElementFeature<
         @CasePathable
         public enum Delegate {
             case onAppear(Input)
-            case onDissapear
+            case onDisappear
             case inputUpdated(Input)
         }
-        
     }
     
     public var body: some ReducerOf<Self> {
@@ -123,7 +122,7 @@ extension ElementFeature {
         
         public var body: some SwiftUI.View {
             self.navigationLinkDestination($store)
-                
+            
         }
     }
 }

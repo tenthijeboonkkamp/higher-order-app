@@ -75,6 +75,12 @@ public struct HigherOrderApp<
     }
     
     public var body: some ReducerOf<Self> {
+        
+        Reduce { state, action in
+            print("application", URL.documentsDirectory)
+            return .none
+        }
+        
         Scope(state: \.collectionFeature, action: \.collectionFeature) {
             CollectionFeature<Input, Output>(input: input)
         }
@@ -93,8 +99,8 @@ public struct HigherOrderApp<
                     return .run { send in
                         try await send(.setOutput(output(input)))
                     }
-                case .onDissapear:
-                    print("onDissapear")
+                case .onDisappear:
+                    print("onDisappear")
                     state.output = nil
                     return .none
                 }
