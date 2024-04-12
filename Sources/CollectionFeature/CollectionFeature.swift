@@ -120,6 +120,9 @@ public struct CollectionFeature<
             }
             .navigationDestination(item: $store.scope(state: \.destination?.row, action: \.destination.row)) { localStore in
                 Row.DestinationView.init(store: localStore, navigationLinkDestination: navigationLinkDestination)
+                    .onAppear{
+                        localStore.send(.delegate(.onAppear(localStore.input)))
+                    }
             }
             .toolbar {
                 Button {

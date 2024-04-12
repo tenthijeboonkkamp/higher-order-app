@@ -28,6 +28,13 @@ extension Application {
             },
             navigationLinkDestination: { $store in
                 Form {
+                    
+                    if store.output?.calculation == true {
+                        Text("store.output.calculation == true")
+                    } else {
+                        Text("store.output.calculation == false")
+                    }
+                    
                     TextField("string", text: $store.input.string)
                     Bool?.View(
                         question: "question?",

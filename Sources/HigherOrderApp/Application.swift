@@ -24,7 +24,7 @@ public struct HigherOrderApp<
     public let output: (Input)->Output
     
     @Reducer
-    public struct Destination {        
+    public struct Destination {
         public let input: ()->Input
         //        case collectionFeature(CollectionFeature<Input, Output>)
         
@@ -40,15 +40,12 @@ public struct HigherOrderApp<
             case collectionFeature(CollectionFeature<Input, Output> .Action)
         }
         
-        
         public var body: some ReducerOf<Self> {
             Scope(state: \.collectionFeature, action: \.collectionFeature) {
                 CollectionFeature<Input, Output>(input: input)
             }
         }
     }
-    
-    
     
     @ObservableState
     public struct State {
@@ -68,13 +65,13 @@ public struct HigherOrderApp<
             self.collectionFeature = collectionFeature
         }
     }
+    
     @CasePathable
     public enum Action {
         case appDelegate(HigherOrderApp.Delegate.Action)
         case didChangeScenePhase(ScenePhase)
         case destination(PresentationAction<Destination.Action>)
         case collectionFeature(CollectionFeature<Input, Output>.Action)
-
     }
     
     public var body: some ReducerOf<Self> {
@@ -82,16 +79,40 @@ public struct HigherOrderApp<
             CollectionFeature<Input, Output>(input: input)
         }
         
+        Reduce { state, action in
+            switch action {
+            case let .collectionFeature(.destination(.presented(.row(.delegate(.onAppear(input)))))):
+                print("test")
+                state.output = output(input)
+//                state.rows[id:id]?.output = output(input)
+                return .none
+            case let .collectionFeature(.destination(.presented(.row(.delegate(.inputUpdated(input)))))):
+                print("test2")
+                state.output = output(input)
+//                state.rows[id:id]?.output = output(input)
+                return .none
+            default:
+                return .none
+            }
+        }
+        
         Scope(state: \.self, action: \.collectionFeature.rows.element) {
             Reduce { state, action in
+                
                 switch action {
 //                case let .destination(.collectionFeature(collectionFeature)):
 //                    return .none
-                
-                case (let id, let .delegate(.inputUpdated(input))):
-                    state.output = output(input)
+//                case let (id, .delegate(.onAppear(input))):
+//                    print("case let (id, .delegate(.onAppear(input))):")
+//                    state.output = output(input)
 //                    state.rows[id:id]?.output = output(input)
-                    return .none
+//                    return .none
+//                    
+//                case let (id, .delegate(.inputUpdated(input))):
+//                    print("case let (id, .delegate(.inputUpdated(input))):")
+//                    state.output = output(input)
+//                    state.rows[id:id]?.output = output(input)
+//                    return .none
                 default:
                     return .none
                 }
@@ -100,7 +121,6 @@ public struct HigherOrderApp<
 
         Reduce { state, action in
             switch action {
-            
             case .appDelegate, .didChangeScenePhase, .destination, .collectionFeature:
                 return .none
             }
@@ -135,10 +155,6 @@ extension HigherOrderApp {
                     navigationLinkLabel: self.navigationLinkLabel,
                     navigationLinkDestination: self.navigationLinkDestination
                 )
-//                .navigationDestination(item: $store.scope(state: \.destination?.collectionFeature?.destination?.row, action: \.destination.collectionFeature.destination.row)) { localStore in
-//                    Row.DestinationView.init(store: localStore, navigationLinkDestination: navigationLinkDestination)
-//                }
-                
             }
         }
     }

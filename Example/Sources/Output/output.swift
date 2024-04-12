@@ -15,3 +15,9 @@ public struct Output: Codable, Hashable {
     @Init(default: "")
     public let string:String
 }
+
+extension Output {
+    public var calculation:Bool {
+        bool ?? false
+    }
+}

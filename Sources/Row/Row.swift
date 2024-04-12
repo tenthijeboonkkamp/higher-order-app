@@ -38,17 +38,17 @@ public struct Row<
             input[keyPath: keyPath]
         }
         
-        //        public subscript<T>(dynamicMember keyPath: WritableKeyPath<Output?, T>) -> T? {
-        //            output?[keyPath: keyPath]
-        //        }
-        //
-        //        public subscript<T>(dynamicMember keyPath: WritableKeyPath<Output?, T?>) -> T? {
-        //            output?[keyPath: keyPath]
-        //        }
-        //
-        //        public subscript<T>(dynamicMember keyPath: WritableKeyPath<Output, T?>) -> T? {
-        //            output?[keyPath: keyPath]
-        //        }
+        public subscript<T>(dynamicMember keyPath: WritableKeyPath<Output?, T>) -> T? {
+            output?[keyPath: keyPath]
+        }
+        
+        public subscript<T>(dynamicMember keyPath: WritableKeyPath<Output?, T?>) -> T? {
+            output?[keyPath: keyPath]
+        }
+        
+        public subscript<T>(dynamicMember keyPath: WritableKeyPath<Output, T?>) -> T? {
+            output?[keyPath: keyPath]
+        }
     }
     
     public enum Action: BindableAction {
@@ -57,6 +57,7 @@ public struct Row<
         
         @CasePathable
         public enum Delegate {
+            case onAppear(Input)
             case inputUpdated(Input)
         }
         
@@ -123,6 +124,7 @@ extension Row {
         
         public var body: some SwiftUI.View {
             self.navigationLinkDestination($store)
+//                .onAppear{store.send(.delegate(.onAppear(store.input)))}
         }
     }
 }
