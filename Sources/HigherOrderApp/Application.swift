@@ -22,30 +22,6 @@ public struct HigherOrderApp<
     public let input: () -> Input
     public let output: (Input) async throws -> Output
     
-    @Reducer
-    public struct Destination {
-        public let input: ()->Input
-        //        case collectionFeature(CollectionFeature<Input, Output>)
-        
-        @CasePathable
-        @dynamicMemberLookup
-        @ObservableState
-        public enum State {
-            case collectionFeature(CollectionFeature<Input, Output> .State)
-        }
-        
-        @CasePathable
-        public enum Action {
-            case collectionFeature(CollectionFeature<Input, Output> .Action)
-        }
-        
-        public var body: some ReducerOf<Self> {
-            Scope(state: \.collectionFeature, action: \.collectionFeature) {
-                CollectionFeature<Input, Output>(input: input)
-            }
-        }
-    }
-    
     @ObservableState
     public struct State {
         public var appDelegate: HigherOrderApp.Delegate.State
@@ -53,6 +29,7 @@ public struct HigherOrderApp<
         @Shared(.fileStorage(.documentsDirectory.appending(path: "elements.json"))) public var elements: IdentifiedArrayOf<ElementFeature<Input, Output>.State> = []
         @Shared(.fileStorage(.documentsDirectory.appending(path: "output.json"))) var output:Output? = nil
         public var collectionFeature: CollectionFeature<Input, Output>.State
+        public var initialized = false
         
         public init(
             appDelegate: HigherOrderApp.Delegate.State = HigherOrderApp.Delegate.State(),
@@ -74,19 +51,40 @@ public struct HigherOrderApp<
         case setOutput(Output)
     }
     
-    public var body: some ReducerOf<Self> {
+    @Reducer
+    public struct Destination {
+        public let input: ()->Input
         
-        Reduce { state, action in
-            print("application", URL.documentsDirectory)
-            return .none
+        @CasePathable
+        @dynamicMemberLookup
+        @ObservableState
+        public enum State {
+            case collectionFeature(CollectionFeature<Input, Output> .State)
         }
         
+        @CasePathable
+        public enum Action {
+            case collectionFeature(CollectionFeature<Input, Output> .Action)
+        }
+        
+        public var body: some ReducerOf<Self> {
+            Scope(state: \.collectionFeature, action: \.collectionFeature) {
+                CollectionFeature<Input, Output>(input: input)
+            }
+        }
+    }
+    
+    public var body: some ReducerOf<Self> {
         Scope(state: \.collectionFeature, action: \.collectionFeature) {
             CollectionFeature<Input, Output>(input: input)
         }
         
         Reduce { state, action in
             switch action {
+            case .collectionFeature(.destination(.dismiss)):
+                print("dismiss")
+                state.output = nil
+                return .none
             case let .collectionFeature(.destination(.presented(.element(.delegate(delegate))))):
                 switch delegate {
                 case let .onAppear(input):
@@ -99,10 +97,6 @@ public struct HigherOrderApp<
                     return .run { send in
                         try await send(.setOutput(output(input)))
                     }
-                case .onDisappear:
-                    print("onDisappear")
-                    state.output = nil
-                    return .none
                 }
             case let .setOutput(output):
                 print("setOutput")
@@ -111,12 +105,17 @@ public struct HigherOrderApp<
             default:
                 return .none
             }
-            
         }
         
         Reduce { state, action in
-            print(state.output == nil ? "nil" : "some")
-            
+            for id in state.collectionFeature.elements.map(\.id) {
+                state.collectionFeature.elements[id: id]?.output = state.output
+            }
+            return .none
+        }
+        
+        
+        Reduce { state, action in
             switch action {
             case .appDelegate(.applicationWillTerminate):
                 state.output = nil

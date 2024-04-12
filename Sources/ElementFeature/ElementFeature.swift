@@ -56,7 +56,6 @@ public struct ElementFeature<
         @CasePathable
         public enum Delegate {
             case onAppear(Input)
-            case onDisappear
             case inputUpdated(Input)
         }
     }
@@ -122,7 +121,6 @@ extension ElementFeature {
         
         public var body: some SwiftUI.View {
             self.navigationLinkDestination($store)
-            
         }
     }
 }
