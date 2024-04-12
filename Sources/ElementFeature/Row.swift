@@ -12,7 +12,7 @@ import MemberwiseInit
 
 @MemberwiseInit(.public)
 @Reducer
-public struct Element<
+public struct ElementFeature<
     Input: Codable & Hashable,
     Output: Codable & Hashable
 > {
@@ -83,18 +83,18 @@ extension Shared: Decodable where Value: Decodable {
 }
 
 
-extension Element {
+extension ElementFeature {
     public struct LabelView<
         NavigationLinkLabelView: SwiftUI.View
     >: SwiftUI.View {
-        @Bindable var store: StoreOf<Element<Input, Output>>
-        public let navigationLinkLabel: (Bindable<StoreOf<Element<Input, Output>>>)-> NavigationLinkLabelView
+        @Bindable var store: StoreOf<ElementFeature<Input, Output>>
+        public let navigationLinkLabel: (Bindable<StoreOf<ElementFeature<Input, Output>>>)-> NavigationLinkLabelView
         
         @SwiftUI.State var sheet: Bool = false
         
         public init(
-            store: StoreOf<Element<Input, Output>>,
-            navigationLinkLabel: @escaping (Bindable<StoreOf<Element<Input, Output>>>) -> NavigationLinkLabelView
+            store: StoreOf<ElementFeature<Input, Output>>,
+            navigationLinkLabel: @escaping (Bindable<StoreOf<ElementFeature<Input, Output>>>) -> NavigationLinkLabelView
         ) {
             self.store = store
             self.navigationLinkLabel = navigationLinkLabel
@@ -108,14 +108,14 @@ extension Element {
     public struct DestinationView<
         NavigationLinkDestinationView: SwiftUI.View
     >: SwiftUI.View {
-        @Bindable var store: StoreOf<Element<Input, Output>>
-        public let navigationLinkDestination: (Bindable<StoreOf<Element<Input, Output>>>)-> NavigationLinkDestinationView
+        @Bindable var store: StoreOf<ElementFeature<Input, Output>>
+        public let navigationLinkDestination: (Bindable<StoreOf<ElementFeature<Input, Output>>>)-> NavigationLinkDestinationView
         
         @SwiftUI.State var sheet: Bool = false
         
         public init(
-            store: StoreOf<Element<Input, Output>>,
-            navigationLinkDestination: @escaping (Bindable<StoreOf<Element<Input, Output>>>) -> NavigationLinkDestinationView
+            store: StoreOf<ElementFeature<Input, Output>>,
+            navigationLinkDestination: @escaping (Bindable<StoreOf<ElementFeature<Input, Output>>>) -> NavigationLinkDestinationView
         ) {
             self.store = store
             self.navigationLinkDestination = navigationLinkDestination

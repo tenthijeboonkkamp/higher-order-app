@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 import ComposableArchitecture
 import MemberwiseInit
-import Element
+import ElementFeature
 
 
 
@@ -25,7 +25,7 @@ public struct CollectionFeature<
     @MemberwiseInit(.public)
     @ObservableState
     public struct State {
-        @Shared(.fileStorage(.documentsDirectory.appending(path: "elements.json"))) public var elements: IdentifiedArrayOf<Element<Input, Output>.State> = []
+        @Shared(.fileStorage(.documentsDirectory.appending(path: "elements.json"))) public var elements: IdentifiedArrayOf<ElementFeature<Input, Output>.State> = []
         @Presents public var destination: CollectionFeature.Destination.State?
         
         public init(destination: CollectionFeature.Destination.State? = nil) {
@@ -34,16 +34,16 @@ public struct CollectionFeature<
     }
     
     public enum Action {
-        case elements(IdentifiedActionOf<Element<Input, Output>>)
+        case elements(IdentifiedActionOf<ElementFeature<Input, Output>>)
         case destination(PresentationAction<CollectionFeature.Destination.Action>)
-        case elementButtonTapped(Element<Input, Output>.State)
+        case elementButtonTapped(ElementFeature<Input, Output>.State)
         case addElementButtonTapped
-        case deleteButtonTapped(id: Element<Input, Output>.State.ID)
+        case deleteButtonTapped(id: ElementFeature<Input, Output>.State.ID)
     }
     
     @Reducer(state: .equatable)
     public enum Destination {
-        case element(Element<Input, Output>)
+        case element(ElementFeature<Input, Output>)
     }
     
     public var body: some ReducerOf<Self> {
@@ -54,7 +54,7 @@ public struct CollectionFeature<
                 state.destination = .element(element)
                 return .none
             case .addElementButtonTapped:
-                let element = Element<Input, Output>.State.init(input: input())
+                let element = ElementFeature<Input, Output>.State.init(input: input())
                 state.elements.append(element)
                 state.destination = .init(.element(element))
                 return .none
@@ -66,7 +66,7 @@ public struct CollectionFeature<
             }
         }
         .forEach(\.elements, action: \.elements) {
-            Element<Input, Output>()
+            ElementFeature<Input, Output>()
         }
         .ifLet(\.$destination, action: \.destination)
         .onChange(of: \.destination?.element) { oldValue, newValue in
@@ -87,13 +87,13 @@ public struct CollectionFeature<
         NavigationLinkLabelView: SwiftUI.View
     >: SwiftUI.View {
         @Bindable var store: StoreOf<CollectionFeature>
-        public let navigationLinkLabel: (Bindable<StoreOf<Element<Input, Output>>>)-> NavigationLinkLabelView
-        public let navigationLinkDestination: (Bindable<StoreOf<Element<Input, Output>>>)-> NavigationLinkDestinationView
+        public let navigationLinkLabel: (Bindable<StoreOf<ElementFeature<Input, Output>>>)-> NavigationLinkLabelView
+        public let navigationLinkDestination: (Bindable<StoreOf<ElementFeature<Input, Output>>>)-> NavigationLinkDestinationView
         
         public init(
             store: StoreOf<CollectionFeature>,
-            @ViewBuilder navigationLinkLabel: @escaping (Bindable<StoreOf<Element<Input, Output>>>) -> NavigationLinkLabelView,
-            @ViewBuilder navigationLinkDestination: @escaping (Bindable<StoreOf<Element<Input, Output>>>) -> NavigationLinkDestinationView
+            @ViewBuilder navigationLinkLabel: @escaping (Bindable<StoreOf<ElementFeature<Input, Output>>>) -> NavigationLinkLabelView,
+            @ViewBuilder navigationLinkDestination: @escaping (Bindable<StoreOf<ElementFeature<Input, Output>>>) -> NavigationLinkDestinationView
         ) {
             self.store = store
             self.navigationLinkLabel = navigationLinkLabel
@@ -106,7 +106,7 @@ public struct CollectionFeature<
                     Button {
                         store.send(.elementButtonTapped(elementStore.state))
                     } label: {
-                        Element.LabelView.init(store: elementStore, navigationLinkLabel: navigationLinkLabel)
+                        ElementFeature.LabelView.init(store: elementStore, navigationLinkLabel: navigationLinkLabel)
                     }
                     .swipeActions(allowsFullSwipe: true) {
                         Button(role: .destructive){
@@ -118,7 +118,7 @@ public struct CollectionFeature<
                 }
             }
             .navigationDestination(item: $store.scope(state: \.destination?.element, action: \.destination.element)) { localStore in
-                Element.DestinationView.init(store: localStore, navigationLinkDestination: navigationLinkDestination)
+                ElementFeature.DestinationView.init(store: localStore, navigationLinkDestination: navigationLinkDestination)
                     .onAppear{
                         localStore.send(.delegate(.onAppear(localStore.input)))
                     }

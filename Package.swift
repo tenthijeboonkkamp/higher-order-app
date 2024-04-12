@@ -6,7 +6,7 @@ import PackageDescription
 extension String {
     static let higherOrderApp: Self = "HigherOrderApp"
     static let collectionFeature: Self = "CollectionFeature"
-    static let element: Self = "Element"
+    static let elementFeature: Self = "ElementFeature"
     static let views: Self = "Views"
     static let example: Self = "Example"
 }
@@ -14,7 +14,7 @@ extension String {
 extension Target.Dependency {
     static let higherOrderApp: Self = .target(name: .higherOrderApp)
     static let collectionFeature: Self = .target(name: .collectionFeature)
-    static let element: Self = .target(name: .element)
+    static let elementFeature: Self = .target(name: .elementFeature)
     static let views: Self = .target(name: .views)
     static let example: Self = .target(name: .example)
 }
@@ -33,8 +33,8 @@ let package = Package(
             targets: [.higherOrderApp]
         ),
         .library(
-            name: .element,
-            targets: [.element]
+            name: .elementFeature,
+            targets: [.elementFeature]
         ),
         .library(
             name: .collectionFeature,
@@ -52,14 +52,14 @@ let package = Package(
     targets: [
         .target(
             name: .higherOrderApp,
-            dependencies: .shared + [.views, .element, .collectionFeature]
+            dependencies: .shared + [.views, .elementFeature, .collectionFeature]
         ),
         .target(
             name: .collectionFeature,
-            dependencies: .shared + [.element]
+            dependencies: .shared + [.elementFeature]
         ),
         .target(
-            name: .element,
+            name: .elementFeature,
             dependencies: .shared + []
         ),
         .target(

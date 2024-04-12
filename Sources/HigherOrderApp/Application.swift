@@ -9,7 +9,7 @@ import ComposableArchitecture
 import SwiftUI
 import MemberwiseInit
 import CollectionFeature
-import Element
+import ElementFeature
 import Combine
 
 @MemberwiseInit(.public)
@@ -50,7 +50,7 @@ public struct HigherOrderApp<
     public struct State {
         public var appDelegate: HigherOrderApp.Delegate.State
         @Presents public var destination: HigherOrderApp.Destination.State?
-        @Shared(.fileStorage(.documentsDirectory.appending(path: "elements.json"))) public var elements: IdentifiedArrayOf<Element<Input, Output>.State> = []
+        @Shared(.fileStorage(.documentsDirectory.appending(path: "elements.json"))) public var elements: IdentifiedArrayOf<ElementFeature<Input, Output>.State> = []
         @Shared(.fileStorage(.documentsDirectory.appending(path: "output.json"))) var output:Output? = nil
         public var collectionFeature: CollectionFeature<Input, Output>.State
         
@@ -128,13 +128,13 @@ extension HigherOrderApp {
         NavigationLinkLabelView: SwiftUI.View
     >: SwiftUI.View {
         @Bindable var store:StoreOf<HigherOrderApp>
-        public let navigationLinkLabel: (Bindable<StoreOf<Element<Input, Output>>>)-> NavigationLinkLabelView
-        public let navigationLinkDestination: (Bindable<StoreOf<Element<Input, Output>>>)-> NavigationLinkDestinationView
+        public let navigationLinkLabel: (Bindable<StoreOf<ElementFeature<Input, Output>>>)-> NavigationLinkLabelView
+        public let navigationLinkDestination: (Bindable<StoreOf<ElementFeature<Input, Output>>>)-> NavigationLinkDestinationView
         
         public init(
             store: StoreOf<HigherOrderApp>,
-            @ViewBuilder navigationLinkLabel: @escaping (Bindable<StoreOf<Element<Input, Output>>>) -> NavigationLinkLabelView,
-            @ViewBuilder navigationLinkDestination: @escaping (Bindable<StoreOf<Element<Input, Output>>>) -> NavigationLinkDestinationView
+            @ViewBuilder navigationLinkLabel: @escaping (Bindable<StoreOf<ElementFeature<Input, Output>>>) -> NavigationLinkLabelView,
+            @ViewBuilder navigationLinkDestination: @escaping (Bindable<StoreOf<ElementFeature<Input, Output>>>) -> NavigationLinkDestinationView
         ) {
             self.store = store
             self.navigationLinkLabel = navigationLinkLabel
