@@ -1,0 +1,99 @@
+### Node.js ###
+node_modules/
+dist/
+
+### Java ###
+*.class
+# Package files
+*.jar
+# Maven build folder
+target/
+
+### Python ###
+# Compiled Python bytecode
+*.py[cod]
+
+### Logs ###
+*.log
+
+### JetBrains IDE ###
+.idea/
+
+### Test reports ###
+TEST*.xml
+
+### macOS generated files ###
+.DS_Store
+*.AppleDouble
+Icon?
+
+### Windows generated files ###
+Thumbs.db
+
+### Applications ###
+*.app
+*.exe
+*.war
+
+### Media files ###
+*.mp4
+*.tiff
+*.avi
+*.flv
+*.mov
+*.wmv
+
+### Xcode specific ###
+# Derived Data and workspace files
+DerivedData/
+xcuserdata/
+*.xccheckout
+*.xcscmblueprint
+
+# Xcode workspace - include specific workspaces if necessary
+*.xcworkspace
+# Uncomment the following line to check in your specific workspace
+# !default.xcworkspace/
+
+# Build products
+build/
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+*.xcuserstate
+
+# User-specific Xcode project files
+project.xcworkspace/
+
+### Package Managers ###
+# CocoaPods
+Pods/
+
+# Carthage
+Carthage/Build/
+
+# Swift Package Manager
+.build/
+.swiftpm/
+Package.resolved
+
+### Fastlane ###
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+
+### Other files to ignore ###
+*.moved-aside
+*.lsyncd
+*.swp
+*.swo
+*.tmp
+*.ipa
+*.dSYM.zip
+*.dSYM
