@@ -19,32 +19,37 @@ extension Application {
         output: Output.init
     )
 }
+
 extension Application {
     public static func `default`(store: StoreOf<Application>) -> some SwiftUI.View {
-        return Application.View(
-            store: store,
-            navigationLinkLabel: { $store in
-                SwiftUI.Text("\(!store.string.isEmpty ? store.string : "empty")")
-            },
-            navigationLinkDestination: { $store in
-                Form {
-                    
-                    if store.output?.calculation == true {
-                        Text("store.output.calculation == true")
-                    } else {
-                        Text("store.output.calculation == false")
-                    }
-                    
-                    Text("\(store.output?.string ?? "")")
-                    
-                    TextField("string", text: $store.input.string)
-                    Bool?.View(
-                        question: "question?",
-                        answer: $store.input.bool
-                    )
-                }
+        return Application.View(store: store) { $store, view in
+            view
+                .navigationTitle("Elements: \(store.elements.count)")
+        } navigationLinkLabel: { $store in
+            VStack(alignment: .leading, spacing: 2.5) {
+                SwiftUI.Text("\(!store.string.isEmpty ? store.string : "new element")")
+                SwiftUI.Text("bool: \(String(describing: store.input.bool))")
             }
-        )
+            .foregroundStyle(Color.primary)
+        } navigationLinkDestination: { $store in
+            Form {
+                if store.output?.calculation == true {
+                    Text("store.output.calculation == true")
+                } else {
+                    Text("store.output.calculation == false")
+                }
+                
+                Text("\(store.output?.string ?? "")")
+                
+                TextField("string", text: $store.input.string)
+                
+                Bool?.View(
+                    question: "question?",
+                    answer: $store.input.bool
+                )
+            }
+            .navigationTitle("\(!store.string.isEmpty ? store.string : "new element")")
+        }
     }
 }
 

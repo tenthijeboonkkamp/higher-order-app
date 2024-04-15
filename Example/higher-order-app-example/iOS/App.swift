@@ -17,8 +17,6 @@ struct Main: App {
         WindowGroup {
             Application.default(store: self.delegate.store)
         }
-        .onChange(of: self.scenePhase) { _, newPhase in
-            self.delegate.store.send(.didChangeScenePhase(newPhase))
-        }
+        .onChange(of: self.scenePhase) { self.delegate.store.send(.didChange(.scenePhase(old: $0, new: $1))) }
     }
 }

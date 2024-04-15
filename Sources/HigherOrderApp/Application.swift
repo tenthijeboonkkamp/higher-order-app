@@ -29,7 +29,6 @@ public struct HigherOrderApp<
         @Shared(.fileStorage(.documentsDirectory.appending(path: "elements.json"))) public var elements: IdentifiedArrayOf<ElementFeature<Input, Output>.State> = []
         @Shared(.fileStorage(.documentsDirectory.appending(path: "output.json"))) var output:Output? = nil
         public var collectionFeature: CollectionFeature<Input, Output>.State
-        public var initialized = false
         
         public init(
             appDelegate: HigherOrderApp.Delegate.State = HigherOrderApp.Delegate.State(),
@@ -45,10 +44,15 @@ public struct HigherOrderApp<
     @CasePathable
     public enum Action {
         case appDelegate(HigherOrderApp.Delegate.Action)
-        case didChangeScenePhase(ScenePhase)
+        case didChange(DidChange)
         case destination(PresentationAction<Destination.Action>)
         case collectionFeature(CollectionFeature<Input, Output>.Action)
         case setOutput(Output)
+        
+        @CasePathable
+        public enum DidChange {
+            case scenePhase(old: ScenePhase, new: ScenePhase)
+        }
     }
     
     @Reducer
@@ -133,29 +137,36 @@ public struct HigherOrderApp<
 
 extension HigherOrderApp {
     public struct View<
+        MainView: SwiftUI.View,
         NavigationLinkDestinationView: SwiftUI.View,
         NavigationLinkLabelView: SwiftUI.View
     >: SwiftUI.View {
         @Bindable var store:StoreOf<HigherOrderApp>
+        public let mainView: (Bindable<StoreOf<HigherOrderApp<Input, Output>>>, CollectionFeature<Input, Output>.View<NavigationLinkDestinationView, NavigationLinkLabelView>) -> MainView
         public let navigationLinkLabel: (Bindable<StoreOf<ElementFeature<Input, Output>>>)-> NavigationLinkLabelView
         public let navigationLinkDestination: (Bindable<StoreOf<ElementFeature<Input, Output>>>)-> NavigationLinkDestinationView
         
         public init(
             store: StoreOf<HigherOrderApp>,
+            mainView: @escaping (Bindable<StoreOf<HigherOrderApp<Input, Output>>>, CollectionFeature<Input, Output>.View<NavigationLinkDestinationView, NavigationLinkLabelView>) -> MainView,
             @ViewBuilder navigationLinkLabel: @escaping (Bindable<StoreOf<ElementFeature<Input, Output>>>) -> NavigationLinkLabelView,
             @ViewBuilder navigationLinkDestination: @escaping (Bindable<StoreOf<ElementFeature<Input, Output>>>) -> NavigationLinkDestinationView
         ) {
             self.store = store
+            self.mainView = mainView
             self.navigationLinkLabel = navigationLinkLabel
             self.navigationLinkDestination = navigationLinkDestination
         }
         
         public var body: some SwiftUI.View {
             NavigationStack {
-                CollectionFeature.View.init(
-                    store: store.scope(state: \.collectionFeature, action: \.collectionFeature),
-                    navigationLinkLabel: self.navigationLinkLabel,
-                    navigationLinkDestination: self.navigationLinkDestination
+                mainView(
+                    $store,
+                    CollectionFeature.View.init(
+                        store: self.store.scope(state: \.collectionFeature, action: \.collectionFeature),
+                        navigationLinkLabel: self.navigationLinkLabel,
+                        navigationLinkDestination: self.navigationLinkDestination
+                    )
                 )
             }
         }
