@@ -9,40 +9,42 @@ import ComposableArchitecture
 import SwiftUI
 import MemberwiseInit
 import CollectionFeature
+
 import ElementFeature
 import Combine
 
 @MemberwiseInit(.public)
 @Reducer
 public struct HigherOrderApp<
-    Input: Codable & Hashable,
-    Output: Codable & Hashable
-> {
+    Input: Codable & Hashable & Sendable,
+    Output: Codable & Hashable & Sendable
+> : Sendable{
 
-    public let input: () -> Input
-    public let output: (Input) async throws -> Output
+    public let input: @Sendable () -> Input
+    public let output: @Sendable  (Input) async throws -> Output
     
     @ObservableState
     public struct State {
         public var appDelegate: HigherOrderApp.Delegate.State
         @Presents public var destination: HigherOrderApp.Destination.State?
-        @Shared(.fileStorage(.documentsDirectory.appending(path: "elements.json"))) public var elements: IdentifiedArrayOf<ElementFeature<Input, Output>.State> = []
+        @Shared public var elements: IdentifiedArrayOf<ElementFeature<Input, Output>.State>
         @Shared(.fileStorage(.documentsDirectory.appending(path: "output.json"))) var output:Output? = nil
         public var collectionFeature: CollectionFeature<Input, Output>.State
         
         public init(
             appDelegate: HigherOrderApp.Delegate.State = HigherOrderApp.Delegate.State(),
             destination: HigherOrderApp.Destination.State? = nil,
-            collectionFeature: CollectionFeature<Input, Output>.State = .init()
+            elements: IdentifiedArrayOf<ElementFeature<Input, Output>.State>
         ) {
             self.appDelegate = appDelegate
             self.destination = destination
-            self.collectionFeature = collectionFeature
+            self._elements = Shared(wrappedValue: elements, .fileStorage(.documentsDirectory.appending(path: "elements.json")))
+            self.collectionFeature = .init(elements: self._elements)
         }
     }
     
     @CasePathable
-    public enum Action {
+    public enum Action: Sendable{
         case appDelegate(HigherOrderApp.Delegate.Action)
         case didChange(DidChange)
         case destination(PresentationAction<Destination.Action>)
@@ -50,7 +52,7 @@ public struct HigherOrderApp<
         case setOutput(Output)
         
         @CasePathable
-        public enum DidChange {
+        public enum DidChange: Sendable {
             case scenePhase(old: ScenePhase, new: ScenePhase)
         }
     }
@@ -67,7 +69,7 @@ public struct HigherOrderApp<
         }
         
         @CasePathable
-        public enum Action {
+        public enum Action: Sendable {
             case collectionFeature(CollectionFeature<Input, Output> .Action)
         }
         

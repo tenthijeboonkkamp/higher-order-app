@@ -16,7 +16,7 @@ extension HigherOrderApp {
             public init() {}
         }
         
-        public enum Action {
+        public enum Action: Sendable {
             case didFinishLaunching
             case applicationWillTerminate
         }

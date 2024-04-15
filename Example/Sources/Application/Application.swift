@@ -14,7 +14,7 @@ import Output
 public typealias Application = HigherOrderApp<Input, Output>
 
 extension Application {
-    public static let `default`:Self = Application(
+    public static let shared:Self = Application(
         input: { Input.init() },
         output: Output.init
     )
@@ -56,9 +56,9 @@ extension Application {
 extension Application {
     public final class Delegate: NSObject, UIApplicationDelegate {
         public let store:StoreOf<Application> = Store(
-            initialState: Application.State.init()
+            initialState: Application.State.init(elements: .init([]))
         ) {
-            Application.default
+            Application.shared
         }
         
         public func application(

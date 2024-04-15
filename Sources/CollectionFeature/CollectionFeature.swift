@@ -13,27 +13,34 @@ import ElementFeature
 
 
 
-@MemberwiseInit(.public)
 @Reducer
 public struct CollectionFeature<
-    Input: Codable & Hashable,
-    Output: Codable & Hashable
+    Input: Codable & Hashable & Sendable,
+    Output: Codable & Hashable & Sendable
 > {
     
     public let input: ()->Input
     
-    @MemberwiseInit(.public)
+    public init(input: @escaping ()->Input) {
+        self.input = input
+    }
+
     @ObservableState
     public struct State {
-        @Shared(.fileStorage(.documentsDirectory.appending(path: "elements.json"))) public var elements: IdentifiedArrayOf<ElementFeature<Input, Output>.State> = []
+        @Shared public var elements: IdentifiedArrayOf<ElementFeature<Input, Output>.State>
+//        @Shared(.fileStorage(.documentsDirectory.appending(path: "elements.json"))) public var elements: IdentifiedArrayOf<ElementFeature<Input, Output>.State> = []
         @Presents public var destination: CollectionFeature.Destination.State?
         
-        public init(destination: CollectionFeature.Destination.State? = nil) {
+        public init(
+            elements: Shared<IdentifiedArrayOf<ElementFeature<Input, Output>.State>>,
+            destination: CollectionFeature.Destination.State? = nil
+        ) {
+            self._elements = elements
             self.destination = destination
         }
     }
     
-    public enum Action {
+    public enum Action: Sendable {
         case elements(IdentifiedActionOf<ElementFeature<Input, Output>>)
         case destination(PresentationAction<CollectionFeature.Destination.Action>)
         case elementButtonTapped(ElementFeature<Input, Output>.State)
@@ -41,7 +48,7 @@ public struct CollectionFeature<
         case deleteButtonTapped(id: ElementFeature<Input, Output>.State.ID)
     }
     
-    @Reducer(state: .equatable)
+    @Reducer(state: .sendable, .equatable)
     public enum Destination {
         case element(ElementFeature<Input, Output>)
     }

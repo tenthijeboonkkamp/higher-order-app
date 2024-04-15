@@ -13,12 +13,12 @@ import MemberwiseInit
 @MemberwiseInit(.public)
 @Reducer
 public struct ElementFeature<
-    Input: Codable & Hashable,
-    Output: Codable & Hashable
-> {
+    Input: Codable & Hashable & Sendable,
+    Output: Codable & Hashable & Sendable
+>: Sendable {
     @ObservableState
     @dynamicMemberLookup
-    public struct State: Codable, Hashable, Identifiable {
+    public struct State: Codable, Hashable, Identifiable, Sendable {
         @Init(default: UUID())
         public let id: UUID
         public var input:Input
@@ -49,12 +49,12 @@ public struct ElementFeature<
         }
     }
     
-    public enum Action: BindableAction {
+    public enum Action: Sendable, BindableAction {
         case binding(BindingAction<State>)
         case delegate(Delegate)
         
         @CasePathable
-        public enum Delegate {
+        public enum Delegate: Sendable {
             case onAppear(Input)
             case inputUpdated(Input)
         }

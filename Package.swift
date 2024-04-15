@@ -50,7 +50,10 @@ let package = Package(
     targets: [
         .target(
             name: .higherOrderApp,
-            dependencies: .shared + [.views, .elementFeature, .collectionFeature]
+            dependencies: .shared + [.views, .elementFeature, .collectionFeature],
+            swiftSettings: [
+              .enableExperimentalFeature("StrictConcurrency")
+            ]
         ),
         .target(
             name: .collectionFeature,
