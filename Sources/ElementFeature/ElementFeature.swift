@@ -67,8 +67,6 @@ public struct ElementFeature<
                         .send(.delegate(.inputUpdated(newValue)))
                 }
             }
-        
-        
     }
 }
 
@@ -77,7 +75,7 @@ extension Shared: Decodable where Value: Decodable {
         do {
             self.init(try decoder.singleValueContainer().decode(Value.self))
         } catch {
-            self.init(try .init(from: decoder))
+            self.init(try .init(from: decoder))!
         }
     }
 }
