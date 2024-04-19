@@ -22,14 +22,16 @@ public struct ElementFeature<
         @Init(default: UUID())
         public let id: UUID
         public var input:Input
-        @Shared(.fileStorage(.documentsDirectory.appending(path: "output.json"))) public var output:Output? = nil
+        public var output:Output? = nil
         
         public init(
             id: UUID = UUID(),
-            input: Input
+            input: Input,
+            output:Output?
         ) {
             self.id = id
             self.input = input
+            self.output = output
         }
         
         public subscript<T>(dynamicMember keyPath: WritableKeyPath<Input, T>) -> T {
@@ -55,8 +57,8 @@ public struct ElementFeature<
         
         @CasePathable
         public enum Delegate: Sendable {
-            case onAppear(Input)
-            case inputUpdated(Input)
+            case onAppear(ElementFeature<Input, Output>.State.ID, Input)
+            case inputUpdated(ElementFeature<Input, Output>.State.ID, Input)
         }
     }
     
@@ -64,22 +66,11 @@ public struct ElementFeature<
         BindingReducer()
             .onChange(of: \.input) { oldValue, newValue in
                 Reduce { state, action in
-                        .send(.delegate(.inputUpdated(newValue)))
+                        .send(.delegate(.inputUpdated(state.id, newValue)))
                 }
             }
     }
 }
-
-extension Shared: Decodable where Value: Decodable {
-    public init(from decoder: Decoder) throws {
-        do {
-            self.init(try decoder.singleValueContainer().decode(Value.self))
-        } catch {
-            self.init(try .init(from: decoder))!
-        }
-    }
-}
-
 
 extension ElementFeature {
     public struct LabelView<
@@ -124,9 +115,3 @@ extension ElementFeature {
         }
     }
 }
-
-
-
-
-
-

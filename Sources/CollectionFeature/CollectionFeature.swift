@@ -11,8 +11,6 @@ import ComposableArchitecture
 import MemberwiseInit
 import ElementFeature
 
-
-
 @Reducer
 public struct CollectionFeature<
     Input: Codable & Hashable & Sendable,
@@ -20,15 +18,19 @@ public struct CollectionFeature<
 > {
     
     public let input: ()->Input
+    public let output: @Sendable (Input) async throws -> Output
     
-    public init(input: @escaping ()->Input) {
+    public init(
+        input: @escaping ()->Input,
+        output: @Sendable @escaping (Input) async throws -> Output
+    ) {
         self.input = input
+        self.output = output
     }
 
     @ObservableState
     public struct State {
         @Shared public var elements: IdentifiedArrayOf<ElementFeature<Input, Output>.State>
-//        @Shared(.fileStorage(.documentsDirectory.appending(path: "elements.json"))) public var elements: IdentifiedArrayOf<ElementFeature<Input, Output>.State> = []
         @Presents public var destination: CollectionFeature.Destination.State?
         
         public init(
@@ -47,7 +49,8 @@ public struct CollectionFeature<
         case addElementButtonTapped
         case deleteButtonTapped(id: ElementFeature<Input, Output>.State.ID)
     }
-    
+    @CasePathable
+    @dynamicMemberLookup
     @Reducer(state: .sendable, .equatable)
     public enum Destination {
         case element(ElementFeature<Input, Output>)
@@ -61,7 +64,7 @@ public struct CollectionFeature<
                 state.destination = .element(element)
                 return .none
             case .addElementButtonTapped:
-                let element = ElementFeature<Input, Output>.State.init(input: input())
+                let element = ElementFeature<Input, Output>.State.init(input: input(), output: nil)
                 let _ = withAnimation {
                     state.elements.append(element)
                 }
@@ -80,16 +83,11 @@ public struct CollectionFeature<
                 return .none
             }
         }
-        .forEach(\.elements, action: \.elements) {
-            ElementFeature<Input, Output>()
-        }
         .ifLet(\.$destination, action: \.destination)
         .onChange(of: \.destination?.element) { oldValue, newValue in
             Reduce { state, action in
-                
-                guard let id = newValue?.id else {
-                    return .none
-                }
+                guard let id = newValue?.id 
+                else { return .none }
                 
                 state.elements[id: id] = newValue
                 return .none
@@ -117,6 +115,7 @@ public struct CollectionFeature<
         
         public var body: some SwiftUI.View {
             List {
+//                ForEach(store.$elements.elements) { elementStore in
                 ForEach(store.scope(state: \.elements, action: \.elements)) { elementStore in
                     Button {
                         store.send(.elementButtonTapped(elementStore.state))
@@ -135,7 +134,7 @@ public struct CollectionFeature<
             .navigationDestination(item: $store.scope(state: \.destination?.element, action: \.destination.element)) { localStore in
                 ElementFeature.DestinationView.init(store: localStore, navigationLinkDestination: navigationLinkDestination)
                     .onAppear{
-                        localStore.send(.delegate(.onAppear(localStore.input)))
+                        localStore.send(.delegate(.onAppear(localStore.id, localStore.input)))
                     }
                     
             }
@@ -150,3 +149,4 @@ public struct CollectionFeature<
         }
     }
 }
+

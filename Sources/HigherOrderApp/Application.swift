@@ -26,20 +26,19 @@ public struct HigherOrderApp<
     @ObservableState
     public struct State {
         public var appDelegate: HigherOrderApp.Delegate.State
-        @Presents public var destination: HigherOrderApp.Destination.State?
+//        @Presents public var destination: HigherOrderApp.Destination.State?
         @Shared public var elements: IdentifiedArrayOf<ElementFeature<Input, Output>.State>
-        @Shared(.fileStorage(.documentsDirectory.appending(path: "output.json"))) var output:Output? = nil
         public var collectionFeature: CollectionFeature<Input, Output>.State
         
         public init(
             appDelegate: HigherOrderApp.Delegate.State = HigherOrderApp.Delegate.State(),
-            destination: HigherOrderApp.Destination.State? = nil,
-            elements: IdentifiedArrayOf<ElementFeature<Input, Output>.State>
+//            destination: HigherOrderApp.Destination.State? = nil,
+            elements: Shared<IdentifiedArrayOf<ElementFeature<Input, Output>.State>>
         ) {
             self.appDelegate = appDelegate
-            self.destination = destination
-            self._elements = Shared(wrappedValue: elements, .fileStorage(.documentsDirectory.appending(path: "elements.json")))
-            self.collectionFeature = .init(elements: self._elements)
+//            self.destination = destination
+            self._elements = elements
+            self.collectionFeature = .init(elements: elements)
         }
     }
     
@@ -47,9 +46,9 @@ public struct HigherOrderApp<
     public enum Action: Sendable{
         case appDelegate(HigherOrderApp.Delegate.Action)
         case didChange(DidChange)
-        case destination(PresentationAction<Destination.Action>)
+//        case destination(PresentationAction<Destination.Action>)
         case collectionFeature(CollectionFeature<Input, Output>.Action)
-        case setOutput(Output)
+        case setOutput(ElementFeature<Input, Output>.State.ID, Output)
         
         @CasePathable
         public enum DidChange: Sendable {
@@ -60,22 +59,23 @@ public struct HigherOrderApp<
     @Reducer
     public struct Destination {
         public let input: ()->Input
+        public let output: @Sendable (Input) async throws -> Output
         
         @CasePathable
         @dynamicMemberLookup
         @ObservableState
         public enum State {
-            case collectionFeature(CollectionFeature<Input, Output> .State)
+            case collectionFeature(CollectionFeature<Input, Output>.State)
         }
         
         @CasePathable
         public enum Action: Sendable {
-            case collectionFeature(CollectionFeature<Input, Output> .Action)
+            case collectionFeature(CollectionFeature<Input, Output>.Action)
         }
         
         public var body: some ReducerOf<Self> {
             Scope(state: \.collectionFeature, action: \.collectionFeature) {
-                CollectionFeature<Input, Output>(input: input)
+                CollectionFeature<Input, Output>(input: input, output: output)
             }
         }
     }
@@ -83,57 +83,57 @@ public struct HigherOrderApp<
     @Dependency(\.mainQueue) var mainQueue
     
     public var body: some ReducerOf<Self> {
+        
         Scope(state: \.collectionFeature, action: \.collectionFeature) {
-            CollectionFeature<Input, Output>(input: input)
+            CollectionFeature<Input, Output>(input: input, output: output)
         }
+        
         
         Reduce { state, action in
             switch action {
             case .collectionFeature(.destination(.dismiss)):
-                print("dismiss")
-                state.output = nil
+//                state.output = nil
                 return .none
+            
             case let .collectionFeature(.destination(.presented(.element(.delegate(delegate))))):
                 switch delegate {
-                case let .onAppear(input):
-                    print("onAppear")
-                    return .run { send in
-                        try await send(.setOutput(output(input)))
+                case let .onAppear(id, input):
+                    return .run { [element = state.collectionFeature.elements[id: id] ] send in
+                        
+                        if element?.output == nil {
+                            try await send(.setOutput(id, output(input)))
+                        }
                     }
-                case let .inputUpdated(input):
+                case let .inputUpdated(id, input):
                     return .run { send in
                         let output = try await output(input)
-                        await send(.setOutput(output))
+                        await send(.setOutput(id, output))
                         
                     }
                     .throttle(id: ThrottleID.inputUpdated, for: .milliseconds(300), scheduler: mainQueue, latest: true)
                 }
-            case let .setOutput(output):
-                print("setOutput")
-                state.output = output
+            case let .setOutput(id, output):
+                print("case let .setOutput(id, output):")
+                state.collectionFeature.elements[id: id]?.output = output               
+                state.collectionFeature.destination?.element?.output = output
+                
                 return .none
             default:
                 return .none
             }
         }
-        
-        Reduce { state, action in
-            for id in state.collectionFeature.elements.map(\.id) {
-                state.collectionFeature.elements[id: id]?.output = state.output
-            }
-            return .none
-        }
-        
+
         
         Reduce { state, action in
             switch action {
             case .appDelegate(.applicationWillTerminate):
-                state.output = nil
+//                state.output = nil
                 return .none
             default:
                 return .none
             }
         }
+        
     }
 }
 
