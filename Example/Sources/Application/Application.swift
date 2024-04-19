@@ -48,7 +48,7 @@ extension Application {
                     answer: $store.input.bool
                 )
             }
-            .navigationTitle("\(!store.string.isEmpty ? store.string : "new element")")
+            .navigationTitle(store.string)
         }
     }
 }
@@ -56,7 +56,11 @@ extension Application {
 extension Application {
     public final class Delegate: NSObject, UIApplicationDelegate {
         public let store:StoreOf<Application> = Store(
-            initialState: Application.State.init(elements: Shared(wrappedValue: .init(uniqueElements: []), .fileStorage(.documentsDirectory.appending(path: "elements.json"))))
+            initialState: Application.State(
+                collectionFeature: .init(
+                    elements: Shared(wrappedValue: .init(uniqueElements: []), .fileStorage(.documentsDirectory.appending(path: "elements.json")))
+                )
+            )
         ) {
             Application.shared
         }

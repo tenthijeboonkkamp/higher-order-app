@@ -57,8 +57,8 @@ public struct ElementFeature<
         
         @CasePathable
         public enum Delegate: Sendable {
-            case onAppear(ElementFeature<Input, Output>.State.ID, Input)
-            case inputUpdated(ElementFeature<Input, Output>.State.ID, Input)
+            case onAppear(Input)
+            case inputUpdated(Input)
         }
     }
     
@@ -66,7 +66,7 @@ public struct ElementFeature<
         BindingReducer()
             .onChange(of: \.input) { oldValue, newValue in
                 Reduce { state, action in
-                        .send(.delegate(.inputUpdated(state.id, newValue)))
+                        .send(.delegate(.inputUpdated(newValue)))
                 }
             }
     }

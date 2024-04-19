@@ -63,36 +63,50 @@ public struct CollectionFeature<
             case let .elementButtonTapped(element):
                 state.destination = .element(element)
                 return .none
+                
             case .addElementButtonTapped:
-                let element = ElementFeature<Input, Output>.State.init(input: input(), output: nil)
                 let _ = withAnimation {
-                    state.elements.append(element)
+                    for _ in 1...1000 {
+                        let element = ElementFeature<Input, Output>.State.init(input: input(), output: nil)
+                        state.elements.append(element)
+                    }
+                    
                 }
+                let element = ElementFeature<Input, Output>.State.init(input: input(), output: nil)
                 state.destination = .init(.element(element))
                 return .none
+                
             case .destination(.dismiss):
                 let input = input()
-                withAnimation {
-                    state.elements.removeAll { $0.input == input }
+//                withAnimation {
+//                    state.elements.removeAll { $0.input == input }
+//                }
+                
+                if let element = state.destination?.element {
+                    state.elements[id: element.id] = element
                 }
+                
+                
                 return .none
-            case .elements, .destination:
-                return .none
+
             case .deleteButtonTapped(id: let id):
                 state.elements[id: id] = nil
+                return .none
+                
+            case .elements, .destination:
                 return .none
             }
         }
         .ifLet(\.$destination, action: \.destination)
-        .onChange(of: \.destination?.element) { oldValue, newValue in
-            Reduce { state, action in
-                guard let id = newValue?.id 
-                else { return .none }
-                
-                state.elements[id: id] = newValue
-                return .none
-            }
-        }
+//        .onChange(of: \.destination?.element) { oldValue, newValue in
+//            Reduce { state, action in
+//                guard let id = newValue?.id 
+//                else { return .none }
+//                
+//                state.elements[id: id] = newValue
+//                return .none
+//            }
+//        }
     }
     
     public struct View<
@@ -134,7 +148,7 @@ public struct CollectionFeature<
             .navigationDestination(item: $store.scope(state: \.destination?.element, action: \.destination.element)) { localStore in
                 ElementFeature.DestinationView.init(store: localStore, navigationLinkDestination: navigationLinkDestination)
                     .onAppear{
-                        localStore.send(.delegate(.onAppear(localStore.id, localStore.input)))
+                        localStore.send(.delegate(.onAppear(localStore.input)))
                     }
                     
             }
