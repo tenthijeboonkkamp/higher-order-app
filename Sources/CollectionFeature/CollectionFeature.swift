@@ -65,22 +65,18 @@ public struct CollectionFeature<
                 return .none
                 
             case .addElementButtonTapped:
-                let _ = withAnimation {
-                    for _ in 1...1000 {
-                        let element = ElementFeature<Input, Output>.State.init(input: input(), output: nil)
-                        state.elements.append(element)
-                    }
-                    
-                }
                 let element = ElementFeature<Input, Output>.State.init(input: input(), output: nil)
+                let _ = withAnimation {
+                    state.elements.append(element)
+                }
                 state.destination = .init(.element(element))
                 return .none
                 
             case .destination(.dismiss):
                 let input = input()
-//                withAnimation {
-//                    state.elements.removeAll { $0.input == input }
-//                }
+                withAnimation {
+                    state.elements.removeAll { $0.input == input }
+                }
                 
                 if let element = state.destination?.element {
                     state.elements[id: element.id] = element
