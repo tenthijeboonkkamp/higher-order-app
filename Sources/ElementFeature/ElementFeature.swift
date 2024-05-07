@@ -71,15 +71,15 @@ public struct ElementFeature<
     
     public var body: some ReducerOf<Self> {
         BindingReducer()
-        
-        Reduce { state, action in
-            reducer(state, action)
-        }
             .onChange(of: \.input) { oldValue, newValue in
                 Reduce { state, action in
                         .send(.delegate(.inputUpdated(newValue)))
                 }
             }
+        
+        Reduce { state, action in
+            reducer(state, action)
+        }
     }
 }
 

@@ -39,6 +39,7 @@ extension Bool? {
                 Section {
                     Text(question)
                     
+
                     GenericPicker(
                         selection: $answer,
                         cases: [true, false]
@@ -47,6 +48,17 @@ extension Bool? {
                     } label: {
                         Text("Answer")
                     }
+                    
+//                    Picker(selection: $answer.animation()) {
+//                        ForEach([true, false], id: \.self) { option in
+//                            Text(option.description)
+//                                .tag(Optional(option))
+//                        }
+//                    } label: {
+//                        Text("Answer")
+//                    }
+//                    .pickerStyle(.segmented)
+
                 } footer: {
                     HStack {
                         Spacer()

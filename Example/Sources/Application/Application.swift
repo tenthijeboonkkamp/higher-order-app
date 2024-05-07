@@ -16,10 +16,8 @@ public typealias Application = HigherOrderApp<Input, Output>
 extension Application {
     public static let shared:Self = Application(
         input: { Input.init() },
-//        input: Input.init,
-        output: Output.init, 
+        output: Output.init,
         reducer: { state, action in
-            print(action)
             return .none
         }
     )
@@ -34,6 +32,11 @@ extension Application {
             VStack(alignment: .leading, spacing: 2.5) {
                 SwiftUI.Text("\(!store.string.isEmpty ? store.string : "new element")")
                 SwiftUI.Text("bool: \(String(describing: store.input.bool))")
+                if store.output?.calculation == true {
+                    Text("store.output.calculation == true")
+                } else {
+                    Text("store.output.calculation == false")
+                }
             }
             .foregroundStyle(Color.primary)
         } navigationLinkDestination: { $store in

@@ -13,7 +13,6 @@ import CollectionFeature
 import ElementFeature
 import Combine
 
-@MemberwiseInit(.public)
 @Reducer
 public struct HigherOrderApp<
     Input: Codable & Hashable & Sendable,
@@ -22,8 +21,19 @@ public struct HigherOrderApp<
     
     public let input: @Sendable () -> Input
     public let output: @Sendable (Input) async throws -> Output
+    
     public let reducer: @Sendable (ElementFeature<Input, Output>.State, ElementFeature<Input, Output>.Action) -> Effect<ElementFeature<Input, Output>.Action>
 
+    public init(
+        input: @Sendable @escaping () -> Input,
+        output: @Sendable @escaping (Input) async throws -> Output,
+        reducer: @Sendable @escaping (ElementFeature<Input, Output>.State, ElementFeature<Input, Output>.Action) -> Effect<ElementFeature<Input, Output>.Action> = { _, _ in Effect.none }
+    ) {
+        self.input = input
+        self.output = output
+        self.reducer = reducer
+    }
+    
     
     @ObservableState
     public struct State {
