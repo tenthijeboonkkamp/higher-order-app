@@ -9,7 +9,7 @@ import Foundation
 import MemberwiseInit
 
 @MemberwiseInit(.public)
-public struct Output: Codable, Hashable {
+public struct Output: Codable, Hashable, Sendable {
     @Init(default: nil)
     public let bool: Bool?
     @Init(default: "")

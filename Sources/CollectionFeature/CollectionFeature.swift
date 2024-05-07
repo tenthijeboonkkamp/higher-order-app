@@ -17,15 +17,20 @@ public struct CollectionFeature<
     Output: Codable & Hashable & Sendable
 > {
     
-    public let input: ()->Input
+    public let input: @Sendable ()->Input
     public let output: @Sendable (Input) async throws -> Output
+    public let reducer: @Sendable (ElementFeature<Input, Output>.State, ElementFeature<Input, Output>.Action) -> Effect<ElementFeature<Input, Output>.Action>
+    
+   
     
     public init(
-        input: @escaping ()->Input,
-        output: @Sendable @escaping (Input) async throws -> Output
+        input: @Sendable @escaping ()->Input,
+        output: @Sendable @escaping (Input) async throws -> Output,
+        reducer: @Sendable @escaping (ElementFeature<Input, Output>.State, ElementFeature<Input, Output>.Action) -> Effect<ElementFeature<Input, Output>.Action>
     ) {
         self.input = input
         self.output = output
+        self.reducer = reducer
     }
 
     @ObservableState
@@ -49,11 +54,36 @@ public struct CollectionFeature<
         case addElementButtonTapped
         case deleteButtonTapped(id: ElementFeature<Input, Output>.State.ID)
     }
-    @CasePathable
-    @dynamicMemberLookup
-    @Reducer(state: .sendable, .equatable)
-    public enum Destination {
-        case element(ElementFeature<Input, Output>)
+    
+
+    public struct Destination: Reducer {
+        
+        public let reducer: @Sendable (ElementFeature<Input, Output>.State, ElementFeature<Input, Output>.Action) -> Effect<ElementFeature<Input, Output>.Action>
+        
+        public init(
+            reducer: @Sendable @escaping (ElementFeature<Input, Output>.State, ElementFeature<Input, Output>.Action) -> Effect<ElementFeature<Input, Output>.Action> = { _, _ in .none }
+        ) {
+            self.reducer = reducer
+        }
+        
+        
+        @CasePathable
+        @dynamicMemberLookup
+        @ObservableState
+            public enum State {
+            case element(ElementFeature<Input, Output>.State)
+        }
+
+        @CasePathable
+        public enum Action: Sendable {
+            case element(ElementFeature<Input, Output> .Action)
+        }
+
+        public var body: some ReducerOf<Self> {
+            Scope(state: \.element, action: \.element) {
+                ElementFeature<Input, Output>(reducer: reducer)
+            }
+        }
     }
     
     public var body: some ReducerOf<Self> {
@@ -93,16 +123,9 @@ public struct CollectionFeature<
                 return .none
             }
         }
-        .ifLet(\.$destination, action: \.destination)
-//        .onChange(of: \.destination?.element) { oldValue, newValue in
-//            Reduce { state, action in
-//                guard let id = newValue?.id 
-//                else { return .none }
-//                
-//                state.elements[id: id] = newValue
-//                return .none
-//            }
-//        }
+        .ifLet(\.$destination, action: \.destination) {
+            Destination(reducer: self.reducer)
+        }
     }
     
     public struct View<
@@ -110,13 +133,13 @@ public struct CollectionFeature<
         NavigationLinkLabelView: SwiftUI.View
     >: SwiftUI.View {
         @Bindable var store: StoreOf<CollectionFeature>
-        public let navigationLinkLabel: (Bindable<StoreOf<ElementFeature<Input, Output>>>)-> NavigationLinkLabelView
-        public let navigationLinkDestination: (Bindable<StoreOf<ElementFeature<Input, Output>>>)-> NavigationLinkDestinationView
+        public let navigationLinkLabel: @MainActor (Bindable<StoreOf<ElementFeature<Input, Output>>>)-> NavigationLinkLabelView
+        public let navigationLinkDestination: @MainActor (Bindable<StoreOf<ElementFeature<Input, Output>>>)-> NavigationLinkDestinationView
         
         public init(
             store: StoreOf<CollectionFeature>,
-            @ViewBuilder navigationLinkLabel: @escaping (Bindable<StoreOf<ElementFeature<Input, Output>>>) -> NavigationLinkLabelView,
-            @ViewBuilder navigationLinkDestination: @escaping (Bindable<StoreOf<ElementFeature<Input, Output>>>) -> NavigationLinkDestinationView
+            @ViewBuilder navigationLinkLabel: @MainActor @escaping (Bindable<StoreOf<ElementFeature<Input, Output>>>) -> NavigationLinkLabelView,
+            @ViewBuilder navigationLinkDestination: @MainActor @escaping (Bindable<StoreOf<ElementFeature<Input, Output>>>) -> NavigationLinkDestinationView
         ) {
             self.store = store
             self.navigationLinkLabel = navigationLinkLabel
@@ -141,8 +164,13 @@ public struct CollectionFeature<
                     }
                 }
             }
-            .navigationDestination(item: $store.scope(state: \.destination?.element, action: \.destination.element)) { localStore in
-                ElementFeature.DestinationView.init(store: localStore, navigationLinkDestination: navigationLinkDestination)
+            .navigationDestination(
+                item: $store.scope(state: \.destination?.element, action: \.destination.element)
+            ) { localStore in
+                ElementFeature.DestinationView(
+                    store: localStore,
+                    navigationLinkDestination: self.navigationLinkDestination
+                )
                     .onAppear{
                         localStore.send(.delegate(.onAppear(localStore.input)))
                     }

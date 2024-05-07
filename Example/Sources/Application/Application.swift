@@ -16,13 +16,18 @@ public typealias Application = HigherOrderApp<Input, Output>
 extension Application {
     public static let shared:Self = Application(
         input: { Input.init() },
-        output: Output.init
+//        input: Input.init,
+        output: Output.init, 
+        reducer: { state, action in
+            print(action)
+            return .none
+        }
     )
 }
 
 extension Application {
     public static func `default`(store: StoreOf<Application>) -> some SwiftUI.View {
-        return Application.View(store: store) { $store, view in
+        return HigherOrderApp.View(store: store) { $store, view in
             view
                 .navigationTitle("Elements: \(store.elements.count)")
         } navigationLinkLabel: { $store in

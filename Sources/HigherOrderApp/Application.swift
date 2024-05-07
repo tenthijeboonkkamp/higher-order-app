@@ -21,19 +21,18 @@ public struct HigherOrderApp<
 > : Sendable{
     
     public let input: @Sendable () -> Input
-    public let output: @Sendable  (Input) async throws -> Output
+    public let output: @Sendable (Input) async throws -> Output
+    public let reducer: @Sendable (ElementFeature<Input, Output>.State, ElementFeature<Input, Output>.Action) -> Effect<ElementFeature<Input, Output>.Action>
+
     
     @ObservableState
     public struct State {
         public var appDelegate: HigherOrderApp.Delegate.State
         @Shared public var elements: IdentifiedArrayOf<ElementFeature<Input, Output>.State>
         @Presents public var destination: HigherOrderApp<Input, Output>.Destination.State?
-        //        public var collectionFeature: CollectionFeature<Input, Output>.State
         
         public init(
             appDelegate: HigherOrderApp.Delegate.State = HigherOrderApp.Delegate.State(),
-            //            destination: HigherOrderApp.Destination.State? = nil,
-            //            collectionFeature: CollectionFeature<Input, Output>.State,
             elements: Shared<IdentifiedArrayOf<ElementFeature<Input, Output>.State>>
         ) {
             self.appDelegate = appDelegate
@@ -59,8 +58,9 @@ public struct HigherOrderApp<
     
     @Reducer
     public struct Destination {
-        public let input: ()->Input
+        public let input: @Sendable ()->Input
         public let output: @Sendable (Input) async throws -> Output
+        public let reducer: @Sendable (ElementFeature<Input, Output>.State, ElementFeature<Input, Output>.Action) -> Effect<ElementFeature<Input, Output>.Action>
         
         @CasePathable
         @dynamicMemberLookup
@@ -77,7 +77,7 @@ public struct HigherOrderApp<
         
         public var body: some ReducerOf<Self> {
             Scope(state: \.collectionFeature, action: \.collectionFeature) {
-                CollectionFeature<Input, Output>(input: input, output: output)
+                CollectionFeature<Input, Output>(input: input, output: output, reducer: self.reducer)
             }
         }
     }
@@ -115,7 +115,7 @@ public struct HigherOrderApp<
             }
         }
         .ifLet(\.$destination, action: \.destination) {
-            HigherOrderApp<Input, Output>.Destination(input: input, output: output)
+            HigherOrderApp<Input, Output>.Destination(input: self.input, output: self.output, reducer: self.reducer)
         }
     }
 }
@@ -127,15 +127,15 @@ extension HigherOrderApp {
         NavigationLinkLabelView: SwiftUI.View
     >: SwiftUI.View {
         @Bindable var store:StoreOf<HigherOrderApp>
-        public let mainView: (Bindable<StoreOf<HigherOrderApp<Input, Output>>>, CollectionFeature<Input, Output>.View<NavigationLinkDestinationView, NavigationLinkLabelView>) -> MainView
+        public let mainView: @MainActor (Bindable<StoreOf<HigherOrderApp<Input, Output>>>, CollectionFeature<Input, Output>.View<NavigationLinkDestinationView, NavigationLinkLabelView>) -> MainView
         public let navigationLinkLabel: @MainActor (Bindable<StoreOf<ElementFeature<Input, Output>>>)-> NavigationLinkLabelView
         public let navigationLinkDestination: @MainActor (Bindable<StoreOf<ElementFeature<Input, Output>>>)-> NavigationLinkDestinationView
         
         public init(
             store: StoreOf<HigherOrderApp>,
-            mainView: @escaping (Bindable<StoreOf<HigherOrderApp<Input, Output>>>, CollectionFeature<Input, Output>.View<NavigationLinkDestinationView, NavigationLinkLabelView>) -> MainView,
-            @ViewBuilder navigationLinkLabel: @escaping (Bindable<StoreOf<ElementFeature<Input, Output>>>) -> NavigationLinkLabelView,
-            @ViewBuilder navigationLinkDestination: @escaping (Bindable<StoreOf<ElementFeature<Input, Output>>>) -> NavigationLinkDestinationView
+            mainView: @MainActor @escaping (Bindable<StoreOf<HigherOrderApp<Input, Output>>>, CollectionFeature<Input, Output>.View<NavigationLinkDestinationView, NavigationLinkLabelView>) -> MainView,
+            @ViewBuilder navigationLinkLabel: @MainActor @escaping (Bindable<StoreOf<ElementFeature<Input, Output>>>) -> NavigationLinkLabelView,
+            @ViewBuilder navigationLinkDestination: @MainActor @escaping (Bindable<StoreOf<ElementFeature<Input, Output>>>) -> NavigationLinkDestinationView
         ) {
             self.store = store
             self.mainView = mainView
@@ -144,7 +144,6 @@ extension HigherOrderApp {
         }
         
         public var body: some SwiftUI.View {
-            
             if let store = self.store.scope(state: \.destination?.collectionFeature, action: \.destination.collectionFeature) {
                 NavigationStack {
                     mainView(

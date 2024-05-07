@@ -10,12 +10,19 @@ import ComposableArchitecture
 import SwiftUI
 import MemberwiseInit
 
-@MemberwiseInit(.public)
 @Reducer
 public struct ElementFeature<
     Input: Codable & Hashable & Sendable,
     Output: Codable & Hashable & Sendable
 >: Sendable {
+    
+    
+    public let reducer: @Sendable (State, Action) -> Effect<Action>
+    
+    public init(reducer: @Sendable @escaping (State, Action) -> Effect<Action> = {_, _ in .none} ) {
+        self.reducer = reducer
+    }
+    
     @ObservableState
     @dynamicMemberLookup
     public struct State: Codable, Hashable, Identifiable, Sendable {
@@ -64,6 +71,10 @@ public struct ElementFeature<
     
     public var body: some ReducerOf<Self> {
         BindingReducer()
+        
+        Reduce { state, action in
+            reducer(state, action)
+        }
             .onChange(of: \.input) { oldValue, newValue in
                 Reduce { state, action in
                         .send(.delegate(.inputUpdated(newValue)))
@@ -77,13 +88,13 @@ extension ElementFeature {
         NavigationLinkLabelView: SwiftUI.View
     >: SwiftUI.View {
         @Bindable var store: StoreOf<ElementFeature<Input, Output>>
-        public let navigationLinkLabel: (Bindable<StoreOf<ElementFeature<Input, Output>>>)-> NavigationLinkLabelView
+        public let navigationLinkLabel: @MainActor (Bindable<StoreOf<ElementFeature<Input, Output>>>)-> NavigationLinkLabelView
         
         @SwiftUI.State var sheet: Bool = false
         
         public init(
             store: StoreOf<ElementFeature<Input, Output>>,
-            navigationLinkLabel: @escaping (Bindable<StoreOf<ElementFeature<Input, Output>>>) -> NavigationLinkLabelView
+            navigationLinkLabel: @MainActor @escaping (Bindable<StoreOf<ElementFeature<Input, Output>>>) -> NavigationLinkLabelView
         ) {
             self.store = store
             self.navigationLinkLabel = navigationLinkLabel
@@ -98,13 +109,13 @@ extension ElementFeature {
         NavigationLinkDestinationView: SwiftUI.View
     >: SwiftUI.View {
         @Bindable var store: StoreOf<ElementFeature<Input, Output>>
-        public let navigationLinkDestination: (Bindable<StoreOf<ElementFeature<Input, Output>>>)-> NavigationLinkDestinationView
+        public let navigationLinkDestination: @MainActor (Bindable<StoreOf<ElementFeature<Input, Output>>>) -> NavigationLinkDestinationView
         
         @SwiftUI.State var sheet: Bool = false
         
         public init(
             store: StoreOf<ElementFeature<Input, Output>>,
-            navigationLinkDestination: @escaping (Bindable<StoreOf<ElementFeature<Input, Output>>>) -> NavigationLinkDestinationView
+            navigationLinkDestination: @MainActor @escaping (Bindable<StoreOf<ElementFeature<Input, Output>>>) -> NavigationLinkDestinationView
         ) {
             self.store = store
             self.navigationLinkDestination = navigationLinkDestination

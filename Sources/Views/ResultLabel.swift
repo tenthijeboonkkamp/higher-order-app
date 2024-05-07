@@ -42,7 +42,7 @@ public struct ResultLabel:SwiftUI.View {
         _ variant:Variant,
         text: ()->SwiftUI.Text
     ){
-        var systemName = switch variant {
+        let systemName = switch variant {
         case .success:
             "checkmark.circle.fill"
         case .failure:

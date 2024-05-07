@@ -9,8 +9,13 @@ import Foundation
 import MemberwiseInit
 
 @MemberwiseInit(.public)
-public struct Input: Hashable, Codable {
-    public var bool: Bool? = nil
-    public var string:String = ""
+public struct Input: Sendable, Hashable, Codable {
+    @Init(default: nil)
+    public var bool: Bool?
+    @Init(default: "")
+    public var string:String
+    
+    
+    
 }
 

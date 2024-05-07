@@ -17,7 +17,19 @@ extension Target.Dependency {
     static let views: Self = .target(name: .views)
 }
 
+extension String {
+    static let storeKitClient:Self = "StoreKitClient"
+    static let userNotificationClient:Self = "UserNotificationClient"
+    static let remoteNotificationsClient:Self = "RemoteNotificationsClient"
+}
+
 extension Target.Dependency {
+    static let userNotificationClient:Self = .target(name: .userNotificationClient)
+    static let storeKitClient:Self = .target(name: .storeKitClient)
+    static let remoteNotificationsClient:Self = .target(name: .remoteNotificationsClient)
+}
+extension Target.Dependency {
+    static let tagged: Self = .product(name: "Tagged", package: "swift-tagged")
     static let memberwiseInit: Self = .product(name: "MemberwiseInit", package: "swift-memberwise-init-macro")
     static let composableArchitecture: Self = .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
 }
@@ -42,15 +54,28 @@ let package = Package(
             name: .views,
             targets: [.views]
         ),
+        .library(
+            name: .userNotificationClient,
+            targets: [.userNotificationClient]
+        ),
+        .library(
+            name: .storeKitClient,
+            targets: [.storeKitClient]
+        ),
+        .library(
+            name: .remoteNotificationsClient,
+            targets: [.remoteNotificationsClient]
+        ),
     ],
     dependencies: [
         .package(url: "https://github.com/gohanlon/swift-memberwise-init-macro", from: "0.3.0"),
-        .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", branch: "shared-state-beta"),
+        .package(url: "https://github.com/pointfreeco/swift-composable-architecture.git", from: "1.10.0"),
+        .package(url: "https://github.com/pointfreeco/swift-tagged.git", from: "0.10.0"),
     ],
     targets: [
         .target(
             name: .higherOrderApp,
-            dependencies: .shared + [.views, .elementFeature, .collectionFeature],
+            dependencies: .shared + [.views, .elementFeature, .collectionFeature, .userNotificationClient],
             swiftSettings: [
               .enableExperimentalFeature("StrictConcurrency")
             ]
@@ -67,12 +92,25 @@ let package = Package(
             name: .views,
             dependencies: .shared + []
         ),
+        .target(
+            name: .userNotificationClient,
+            dependencies: .shared + []
+        ),
+        .target(
+            name: .storeKitClient,
+            dependencies: .shared + []
+        ),
+        .target(
+            name: .remoteNotificationsClient,
+            dependencies: .shared + []
+        ),
     ]
 )
 
 extension [Target.Dependency] {
     static let shared:Self = [
         .memberwiseInit,
-        .composableArchitecture
+        .composableArchitecture,
+        .tagged
     ]
 }
