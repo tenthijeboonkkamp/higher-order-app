@@ -15,7 +15,7 @@ struct Main: App {
     
     var body: some Scene {
         WindowGroup {
-            Application.default(store: self.delegate.store)
+            Application.View(store: self.delegate.store)
         }
         .onChange(of: self.scenePhase) { self.delegate.store.send(.didChange(.scenePhase(old: $0, new: $1))) }
     }

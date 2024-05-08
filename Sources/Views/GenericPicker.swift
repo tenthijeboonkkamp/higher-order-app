@@ -18,6 +18,18 @@ public struct GenericPicker<
     var `case`: (T) -> CaseView
     var label: () -> LabelView
     
+    public init(
+        selection: Binding<T?>,
+        cases: [T] = [],
+        case: @escaping (T) -> CaseView,
+        label: @escaping () -> LabelView
+    ) {
+        self._selection = selection
+        self.cases = cases
+        self.case = `case`
+        self.label = label
+    }
+    
     public var body: some View {
         Picker(
             selection: $selection.animation(),

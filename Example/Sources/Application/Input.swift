@@ -14,8 +14,5 @@ public struct Input: Sendable, Hashable, Codable {
     public var bool: Bool?
     @Init(default: "")
     public var string:String
-    
-    
-    
 }
 
