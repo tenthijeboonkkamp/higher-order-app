@@ -8,7 +8,7 @@
 import Foundation
 import ComposableArchitecture
 import SwiftUI
-import HigherOrderApp
+import HigherOrderAppWithCollection
 import Output
 
 extension Application {
@@ -21,14 +21,10 @@ extension Application {
         
         public var body: some SwiftUI.View {
             TabView {
-                HigherOrderApp.View(store: store) { $store, view in
-                    view
-                        .navigationTitle("Higher Order")
-                       
-                } navigationLinkLabel: { $store in
+                HigherOrderAppWithCollection.View(store: store) { $store in
                     VStack(alignment: .leading, spacing: 2.5) {
                         SwiftUI.Text("\(!store.string.isEmpty ? store.string : "new element")")
-                        SwiftUI.Text("bool: \(String(describing: store.input.bool))")
+                        SwiftUI.Text("bool: \(String(describing: store.bool))")
                         if store.output?.calculation == true {
                             Text("store.output.calculation == true")
                         } else {
@@ -36,6 +32,7 @@ extension Application {
                         }
                     }
                     .foregroundStyle(Color.primary)
+                    .navigationTitle("Higher Order with Collection")
                 } navigationLinkDestination: { $store in
                     Form {
                         if store.output?.calculation == true {
@@ -55,12 +52,14 @@ extension Application {
                     }
                     .navigationTitle(store.string)
                 }
+                
                 .tabItem {
                     Label(
                         title: { Text(store.elements.count > 1 ? "Cases" : "Case" ) },
                         icon: { Image(systemName: "heart.text.square") }
                     )
                 }
+                
                 
                 NavigationStack {
                     Form {
@@ -70,8 +69,8 @@ extension Application {
                                     .resizable()
                                     .scaledToFill()
                                     .frame(width: 50, height: 50)
-                                    .padding(2.5)
                                     .clipShape(Circle())
+                                    .padding(2.5)
                                 
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text("Coen ten Thije Boonkkamp")
@@ -84,14 +83,16 @@ extension Application {
                                 }
                             }
                             
-                            ColorPicker(selection: ($store.tint ?? .red).animation()) {
+                            ColorPicker(
+                                selection: ($store.higherOrder.tint ?? .red).animation()
+                            ) {
                                 HStack {
                                     Text("App Tint")
-                                    if store.tint != nil {
+                                    if store.higherOrder.tint != nil {
                                         Spacer()
                                         Button {
                                             withAnimation {
-                                                store.tint = nil
+                                                store.higherOrder.tint = nil
                                             }
                                         } label: {
                                             Text("reset")
@@ -149,6 +150,8 @@ extension Application {
                     
                 }
             }
+            
+            .tint(.primary)
             .scrollDismissesKeyboard(.immediately)
         }
     }

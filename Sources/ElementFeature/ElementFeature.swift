@@ -16,10 +16,9 @@ public struct ElementFeature<
     Output: Codable & Hashable & Sendable
 >: Sendable {
     
+    public let reducer: @Sendable (inout State, Action) -> Effect<Action>
     
-    public let reducer: @Sendable (State, Action) -> Effect<Action>
-    
-    public init(reducer: @Sendable @escaping (State, Action) -> Effect<Action> = {_, _ in .none} ) {
+    public init(reducer: @Sendable @escaping (inout State, Action) -> Effect<Action> = {_, _ in .none} ) {
         self.reducer = reducer
     }
     
@@ -49,13 +48,13 @@ public struct ElementFeature<
             output?[keyPath: keyPath]
         }
         
-        public subscript<T>(dynamicMember keyPath: KeyPath<Output?, T?>) -> T? {
-            output?[keyPath: keyPath]
-        }
-        
-        public subscript<T>(dynamicMember keyPath: KeyPath<Output, T?>) -> T? {
-            output?[keyPath: keyPath]
-        }
+//        public subscript<T>(dynamicMember keyPath: KeyPath<Output?, T?>) -> T? {
+//            output?[keyPath: keyPath]
+//        }
+//        
+//        public subscript<T>(dynamicMember keyPath: KeyPath<Output, T?>) -> T? {
+//            output?[keyPath: keyPath]
+//        }
     }
     
     public enum Action: Sendable, BindableAction {
@@ -77,9 +76,10 @@ public struct ElementFeature<
                 }
             }
         
-        Reduce { state, action in
-            reducer(state, action)
-        }
+//        Reduce { state, action in
+//            reducer(state, action)
+//        }
+        Reduce.init(reducer)
     }
 }
 

@@ -15,7 +15,7 @@ extension Target.Dependency {
 
 extension Target.Dependency {
     static let composableArchitecture: Self = .product(name: "ComposableArchitecture", package: "swift-composable-architecture")
-    static let higherOrderApp: Self = .product(name: "HigherOrderApp", package: "higher-order-app")
+    static let higherOrderApp: Self = .product(name: "HigherOrderAppWithCollection", package: "higher-order-app")
     static let memberwiseInit: Self = .product(name: "MemberwiseInit", package: "swift-memberwise-init-macro")
 }
 

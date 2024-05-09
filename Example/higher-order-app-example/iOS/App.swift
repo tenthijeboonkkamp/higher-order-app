@@ -17,6 +17,6 @@ struct Main: App {
         WindowGroup {
             Application.View(store: self.delegate.store)
         }
-        .onChange(of: self.scenePhase) { self.delegate.store.send(.didChange(.scenePhase(old: $0, new: $1))) }
+        .onChange(of: self.scenePhase) { self.delegate.store.send(.higherOrder(.didChange(.scenePhase(old: $0, new: $1)))) }
     }
 }

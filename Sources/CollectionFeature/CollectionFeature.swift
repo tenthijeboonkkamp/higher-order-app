@@ -10,9 +10,7 @@ import SwiftUI
 import ComposableArchitecture
 import MemberwiseInit
 import ElementFeature
-
-
-
+import ToolKit
 
 @Reducer
 public struct CollectionFeature<
@@ -21,7 +19,7 @@ public struct CollectionFeature<
 > {
     let input: @Sendable ()->Input
     let output: @Sendable (Input) async throws -> Output
-    let reducer: @Sendable (ElementFeature<Input, Output>.State, ElementFeature<Input, Output>.Action) -> Effect<ElementFeature<Input, Output>.Action>
+    let reducer: @Sendable (inout ElementFeature<Input, Output>.State, ElementFeature<Input, Output>.Action) -> Effect<ElementFeature<Input, Output>.Action>
     let searchable: Searchable?
     
     public struct Searchable: Sendable {
@@ -31,7 +29,7 @@ public struct CollectionFeature<
             self.predicate = predicate
         }
         
-        public init(_ predicate: @Sendable @escaping  (String, ElementFeature<Input, Output>.State) async  -> Bool) {
+        public init(_ predicate: @Sendable @escaping (String, ElementFeature<Input, Output>.State) async -> Bool) {
             self = .init(curry(predicate))
         }
     }
@@ -39,7 +37,7 @@ public struct CollectionFeature<
     public init(
         input: @Sendable @escaping ()->Input,
         output: @Sendable @escaping (Input) async throws -> Output,
-        reducer: @Sendable @escaping (ElementFeature<Input, Output>.State, ElementFeature<Input, Output>.Action) -> Effect<ElementFeature<Input, Output>.Action>,
+        reducer: @Sendable @escaping (inout ElementFeature<Input, Output>.State, ElementFeature<Input, Output>.Action) -> Effect<ElementFeature<Input, Output>.Action>,
         searchable: Searchable?
         
     ) {
@@ -71,13 +69,14 @@ public struct CollectionFeature<
                 if let predicate = searchable?.predicate {
                     Reduce { state, action in
                         
-                        guard !newValue.isEmpty
-                        else {
+                        
+                        if newValue.isEmpty {
                             state.filteredElements = state.elements
-                            return .none
                         }
+                        
                         return .run { [elements = state.elements, text = state.searchable.text] send in
-                            await send(.updateFilter( await elements.filterAsyncParallel(predicate(text))))
+                            await send(.updateFilter( await elements.filter(predicate(text))))
+                            print("run")
                         }
                         .throttle(id: ThrottleID.searchUpdated, for: .milliseconds(1000), scheduler: mainQueue, latest: true)
                     }
@@ -138,42 +137,36 @@ public struct CollectionFeature<
     }
 }
 
-extension IdentifiedArray where Element: Identifiable, Element.ID == ID {
-    /// Asynchronously filters the elements of `IdentifiedArray` using the provided predicate, with parallel processing.
-    func filterAsyncParallel(_ predicate: @escaping (Element) async -> Bool) async -> IdentifiedArray<ID, Element> {
-        var results: [Element] = []
-
-        // Use a task group to perform parallel checks
-        await withTaskGroup(of: Element?.self) { group in
-            // Launch a task for each element
-            for element in self {
-                group.addTask {
-                    return await predicate(element) ? element : nil
-                }
-            }
-            
-            // Collect non-nil results
-            for await result in group {
-                if let validResult = result {
-                    results.append(validResult)
-                }
-            }
+public func curry<A, B, C>(_ first: @Sendable @escaping (A, B) async -> C) -> @Sendable (A) -> (B) async -> C {
+    return { a in
+        { b in
+            await first(a, b)
         }
-        
-        // Create a new IdentifiedArray from the filtered results
-        return IdentifiedArray(uniqueElements: results)
+    }
+}
+
+public func curry<A, B, C>(_ first: @Sendable @escaping (A, inout B) async -> C) -> @Sendable (A) -> (inout B) async -> C {
+    return { a in
+        { b in
+            await first(a, &b)
+        }
     }
 }
 
 
-
 extension CollectionFeature {
     @ObservableState
-    public struct State {
+    public struct State: Equatable {
+        public static func == (lhs: CollectionFeature<Input, Output>.State, rhs: CollectionFeature<Input, Output>.State) -> Bool {
+            lhs.elements == rhs.elements
+            && lhs.searchable == rhs.searchable
+            && lhs.filteredElements == rhs.filteredElements
+        }
+        
         @Shared public var elements: IdentifiedArrayOf<ElementFeature<Input, Output>.State>
         @Presents public var destination: CollectionFeature.Destination.State?
         var searchable: Searchable
-        var filteredElements: IdentifiedArrayOf<ElementFeature<Input, Output>.State>
+        var filteredElements: IdentifiedArrayOf<ElementFeature<Input, Output>.State> = []
         
         public struct Searchable: Equatable {
             public var text: String = ""
@@ -192,7 +185,6 @@ extension CollectionFeature {
             self.searchable = .init(text: "", isPresented: false)
             self._elements = elements
             self.destination = destination
-            self.filteredElements = elements.wrappedValue
         }
     }
     
@@ -208,10 +200,10 @@ extension CollectionFeature {
     }
     
     public struct Destination: Reducer {
-        public let reducer: @Sendable (ElementFeature<Input, Output>.State, ElementFeature<Input, Output>.Action) -> Effect<ElementFeature<Input, Output>.Action>
+        public let reducer: @Sendable (inout ElementFeature<Input, Output>.State, ElementFeature<Input, Output>.Action) -> Effect<ElementFeature<Input, Output>.Action>
         
         public init(
-            reducer: @Sendable @escaping (ElementFeature<Input, Output>.State, ElementFeature<Input, Output>.Action) -> Effect<ElementFeature<Input, Output>.Action> = { _, _ in .none }
+            reducer: @Sendable @escaping (inout ElementFeature<Input, Output>.State, ElementFeature<Input, Output>.Action) -> Effect<ElementFeature<Input, Output>.Action> = { _, _ in .none }
         ) {
             self.reducer = reducer
         }
@@ -264,152 +256,35 @@ extension AlertState  {
     }
 }
 
-extension CollectionFeature {
-    public struct View<
-        NavigationLinkDestinationView: SwiftUI.View,
-        NavigationLinkLabelView: SwiftUI.View
-    >: SwiftUI.View {
-        @Bindable var store: StoreOf<CollectionFeature>
-        public let navigationLinkLabel: @MainActor (Bindable<StoreOf<ElementFeature<Input, Output>>>) -> NavigationLinkLabelView
-        public let navigationLinkDestination: @MainActor (Bindable<StoreOf<ElementFeature<Input, Output>>>) -> NavigationLinkDestinationView
-        
-        public init(
-            store: StoreOf<CollectionFeature>,
-            @ViewBuilder navigationLinkLabel: @MainActor @escaping (Bindable<StoreOf<ElementFeature<Input, Output>>>) -> NavigationLinkLabelView,
-            @ViewBuilder navigationLinkDestination: @MainActor @escaping (Bindable<StoreOf<ElementFeature<Input, Output>>>) -> NavigationLinkDestinationView
-        ) {
-            self.store = store
-            self.navigationLinkLabel = navigationLinkLabel
-            self.navigationLinkDestination = navigationLinkDestination
-        }
-        
-        public var body: some SwiftUI.View {
-            List {
-                if store.searchable.isPresented {
-                    ForEach(store.scope(state: \.filteredElements, action: \.elements)) { elementStore in
-                        Button {
-                            store.send(.elementButtonTapped(elementStore.state))
-                        } label: {
-                            ElementFeature.LabelView.init(store: elementStore, navigationLinkLabel: navigationLinkLabel)
-                        }
-                        .swipeActions(allowsFullSwipe: true) {
-                            Button(role: .destructive){
-                                store.send(.deleteButtonTapped(id:  elementStore.id))
-                            } label: {
-                                Text("Delete")
-                            }
-                            .tint(Color.red)
-                        }
-                    }
-                    
-                } else {
-                    ForEach(store.scope(state: \.elements, action: \.elements)) { elementStore in
-                        Button {
-                            store.send(.elementButtonTapped(elementStore.state))
-                        } label: {
-                            ElementFeature.LabelView.init(store: elementStore, navigationLinkLabel: navigationLinkLabel)
-                        }
-                        .swipeActions(allowsFullSwipe: true) {
-                            Button(role: .destructive){
-                                store.send(.deleteButtonTapped(id:  elementStore.id))
-                            } label: {
-                                Text("Delete")
-                            }
-                            .tint(Color.red)
-                        }
-                    }
-                }
-            }
-            .navigationDestination(
-                item: $store.scope(state: \.destination?.element, action: \.destination.element)
-            ) { localStore in
-                ElementFeature.DestinationView(
-                    store: localStore,
-                    navigationLinkDestination: self.navigationLinkDestination
-                )
-                .onAppear{
-                    localStore.send(.delegate(.onAppear(localStore.input)))
+fileprivate enum ThrottleID { case searchUpdated }
+
+
+
+
+extension IdentifiedArray where Element: Identifiable, Element.ID == ID {
+    /// Asynchronously filters the elements of `IdentifiedArray` using the provided predicate, with parallel processing.
+    func filter(_ predicate: @escaping (Element) async -> Bool) async -> IdentifiedArray<ID, Element> {
+        print("run")
+        var results: [Element] = []
+
+        // Use a task group to perform parallel checks
+        await withTaskGroup(of: Element?.self) { group in
+            // Launch a task for each element
+            for element in self {
+                group.addTask {
+                    return await predicate(element) ? element : nil
                 }
             }
             
-            .alert($store.scope(state: \.destination?.alert, action: \.destination.alert))
-            .toolbar {
-                Button {
-                    store.send(.addElementButtonTapped)
-                } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .imageScale(.large)
-                        .font(.title2)
+            // Collect non-nil results
+            for await result in group {
+                if let validResult = result {
+                    results.append(validResult)
                 }
             }
-            .searchable(
-                text: $store.searchable.text.animation(),
-                isPresented: $store.searchable.isPresented.animation()
-            )
         }
+        
+        // Create a new IdentifiedArray from the filtered results
+        return IdentifiedArray(uniqueElements: results)
     }
 }
-
-//
-//#Preview {
-//    struct Input: Codable & Hashable & Sendable {
-//        var string:String = ""
-//    }
-//    
-//    struct Output: Codable & Hashable & Sendable {
-//        var bool: Bool = false
-//        
-//        init(bool:Bool = false){
-//            self.bool = bool
-//        }
-//        
-//        init(input:Input) async throws {
-//            self = .init(bool: input.string == "" ? true : false)
-//        }
-//    }
-//    
-//    let store = StoreOf<CollectionFeature<Input, Output>>.init(
-//        initialState: .init(
-//            searchable: Shared(CollectionFeature<Input, Output>.Searchable.init(text: "", isPresented: false)),
-//            elements: Shared.init(IdentifiedArrayOf<ElementFeature<Input, Output>.State>.init(uniqueElements: []))
-//        ),
-//        reducer: {
-//            CollectionFeature<Input, Output>.init(
-//                input: Input.init,
-//                output: Output.init,
-//                reducer: { state, action in .none },
-//                searchable.predicate: nil
-//            )
-//        }
-//    )
-//    
-//    return NavigationStack {
-//        CollectionFeature.View(
-//            store: store,
-//            navigationLinkLabel: { $store in
-//                Text(store.input.string)
-//            },
-//            navigationLinkDestination: { $store in
-//                Text(store.input.string)
-//            }
-//        )
-//    }
-//}
-
-
-private func curry<A, B, C>(_ first: @Sendable @escaping (A, B) -> C) -> @Sendable (A) -> (B) -> C {
-    return { a in
-        { b in
-            first(a, b)
-        }
-    }
-}
-
-private func curry<A, B, C>(_ first: @Sendable @escaping (A, B) async -> C) -> @Sendable (A) -> (B) async -> C {
-    return { a in
-        { b in
-            await first(a, b)
-        }
-    }
-}
-fileprivate enum ThrottleID { case searchUpdated }

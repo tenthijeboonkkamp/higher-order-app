@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import HigherOrderApp
+import HigherOrderAppWithCollection
 import Output
 import SwiftUI
 import ComposableArchitecture
@@ -19,12 +19,12 @@ extension Application {
             _ application: UIApplication,
             didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil
         ) -> Bool {
-            self.store.send(.appDelegate(.didFinishLaunching))
+            self.store.send(.higherOrder(.appDelegate(.didFinishLaunching)))
             return true
         }
         
         public func applicationWillTerminate(_ application: UIApplication) {
-            self.store.send(.appDelegate(.applicationWillTerminate))
+            self.store.send(.higherOrder(.appDelegate(.applicationWillTerminate)))
         }
     }
 }
