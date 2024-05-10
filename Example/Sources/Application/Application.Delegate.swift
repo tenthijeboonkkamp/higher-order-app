@@ -13,7 +13,7 @@ import ComposableArchitecture
 
 extension Application {
     public final class Delegate: NSObject, UIApplicationDelegate {
-        public let store:StoreOf<Application> = .default
+        public let store:StoreOf<Application> = Application.store
         
         public func application(
             _ application: UIApplication,

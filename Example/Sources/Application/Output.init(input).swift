@@ -9,10 +9,9 @@ import Foundation
 import Output
 
 extension Output {
-    @Sendable public init (input: Input) async throws {
+    @Sendable public init (input: Application.Input) async throws {
         self = .init(
-            bool: input.bool,
-            string: input.string
+            calculation: input.bool == true ? true : nil
         )
     }
 }

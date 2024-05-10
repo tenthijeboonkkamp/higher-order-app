@@ -8,12 +8,11 @@
 import ComposableArchitecture
 import SwiftUI
 import MemberwiseInit
-import Combine
 
 @Reducer
 public struct HigherOrderApp<
     Destination: Reducer
-> : Sendable where Destination.Action: CasePathable, Destination.State: Equatable {
+> : Sendable where Destination.Action: CasePathable & Sendable, Destination.State: Equatable {
     
     public let destination: @Sendable ()-> Destination
     public let reducer: (@Sendable (inout State, Action) -> Effect<Action>)?
@@ -68,42 +67,6 @@ public struct HigherOrderApp<
         }
     }
 }
-
-//extension HigherOrderApp {
-//    @Reducer
-//    public struct Destination {
-//        public let input: @Sendable ()->Input
-//        public let output: @Sendable (Input) async throws -> Output
-////        public let collection: HigherOrderApp.Collection
-////        public let reducer: @Sendable (ElementFeature<Input, Output>.State, ElementFeature<Input, Output>.Action) -> Effect<ElementFeature<Input, Output>.Action>
-////        public let searchable: CollectionFeature<Input, Output>.Searchable?
-//        
-//        @CasePathable
-//        @dynamicMemberLookup
-//        @ObservableState
-//        public enum State {
-//            case collectionFeature(CollectionFeature<Input, Output>.State)
-//        }
-//        
-//        @CasePathable
-//        @dynamicMemberLookup
-//        public enum Action: Sendable {
-//            case collectionFeature(CollectionFeature<Input, Output>.Action)
-//        }
-//        
-//        public var body: some ReducerOf<Self> {
-//            Scope(state: \.collectionFeature, action: \.collectionFeature) {
-//                CollectionFeature<Input, Output>(
-//                    input: input,
-//                    output: output,
-//                    reducer: self.collection.reducer,
-//                    searchable: self.collection.searchable
-//                )
-//            }
-//        }
-//    }
-//}
-
 
 fileprivate enum ThrottleID { case inputUpdated }
 

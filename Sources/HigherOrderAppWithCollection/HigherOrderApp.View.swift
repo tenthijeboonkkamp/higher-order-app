@@ -10,8 +10,7 @@ import SwiftUI
 import MemberwiseInit
 import CollectionFeature
 import ElementFeature
-import Combine
-import HigherOrderAppEssentials
+import HigherOrderApp
 
 extension HigherOrderAppWithCollection {
     public struct View<

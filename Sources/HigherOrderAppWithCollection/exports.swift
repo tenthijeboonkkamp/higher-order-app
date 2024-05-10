@@ -6,3 +6,7 @@
 //
 
 @_exported import Views
+
+@_exported import protocol HigherOrderApp.HigherOrderAppProtocol
+
+//public protocol HigherOrderAppWithCollectionProtocol: HigherOrderAppProtocol {}

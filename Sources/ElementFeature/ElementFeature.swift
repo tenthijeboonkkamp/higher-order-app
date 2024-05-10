@@ -47,14 +47,6 @@ public struct ElementFeature<
         public subscript<T>(dynamicMember keyPath: KeyPath<Output?, T>) -> T? {
             output?[keyPath: keyPath]
         }
-        
-//        public subscript<T>(dynamicMember keyPath: KeyPath<Output?, T?>) -> T? {
-//            output?[keyPath: keyPath]
-//        }
-//        
-//        public subscript<T>(dynamicMember keyPath: KeyPath<Output, T?>) -> T? {
-//            output?[keyPath: keyPath]
-//        }
     }
     
     public enum Action: Sendable, BindableAction {

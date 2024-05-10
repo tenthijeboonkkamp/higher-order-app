@@ -10,8 +10,9 @@ import SwiftUI
 import MemberwiseInit
 import CollectionFeature
 import ElementFeature
-import Combine
-import HigherOrderAppEssentials
+import HigherOrderApp
+
+
 
 @Reducer
 public struct HigherOrderAppWithCollection<
@@ -50,28 +51,33 @@ public struct HigherOrderAppWithCollection<
     public struct State {
         public var higherOrder: HigherOrderApp<HigherOrderAppWithCollection<Input, Output>.Destination>.State
         @Shared public var elements: IdentifiedArrayOf<ElementFeature<Input, Output>.State>
-//        @Presents public var destination: HigherOrderAppWithCollection<Input, Output>.Destination.State?
+
+//        public init(
+//            higherOrder: HigherOrderApp<HigherOrderAppWithCollection<Input, Output>.Destination>.State,
+//            elements: Shared<IdentifiedArrayOf<ElementFeature<Input, Output>.State>>
+//        ) {
+//            self.higherOrder = higherOrder
+//            self._elements = elements
+//        }
         
         public init(
-            higherOrder: HigherOrderApp<HigherOrderAppWithCollection<Input, Output>.Destination>.State,
-            elements: Shared<IdentifiedArrayOf<ElementFeature<Input, Output>.State>>
+            tint: Shared<Color?> = .init(nil),
+            elements: Shared<IdentifiedArrayOf<ElementFeature<Input, Output>.State>>,
+            destination: CollectionFeature<Input, Output>.Destination.State? = nil
         ) {
-            self.higherOrder = higherOrder
+            self.higherOrder = .init(
+                tint: tint,
+                destination: .collectionFeature(.init(elements: elements, destination: destination))
+            )
             self._elements = elements
-//            self.destination = .collectionFeature(
-//                .init(
-//                    elements: elements
-//                )
-//            )
         }
+        
     }
     
     @CasePathable
     @dynamicMemberLookup
     public enum Action: Sendable, BindableAction {
         case higherOrder(HigherOrderApp<HigherOrderAppWithCollection<Input, Output>.Destination>.Action)
-//        case collectionFeature(CollectionFeature<Input, Output>.Action)
-//        case destination(PresentationAction<Destination.Action>)
         case setOutput(Output)
         case binding(BindingAction<State>)
     }
@@ -81,14 +87,12 @@ public struct HigherOrderAppWithCollection<
     public var body: some ReducerOf<Self> {
         BindingReducer()
             
-        
         Scope(state: \.higherOrder, action: \.higherOrder) {
             HigherOrderApp<HigherOrderAppWithCollection<Input, Output>.Destination>.init(
                 destination: self.higherOrder.destination,
                 reducer: self.higherOrder.reducer
             )
         }
-        
         
         Reduce { state, action in
             
@@ -122,6 +126,7 @@ public struct HigherOrderAppWithCollection<
         }
     }
 }
+
 extension HigherOrderAppWithCollection {
     @Reducer
     public struct Destination {
@@ -168,7 +173,4 @@ extension HigherOrderAppWithCollection {
     }
 }
 
-//
 fileprivate enum ThrottleID { case inputUpdated }
-
-

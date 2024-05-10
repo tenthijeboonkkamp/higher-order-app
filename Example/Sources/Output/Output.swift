@@ -11,13 +11,6 @@ import MemberwiseInit
 @MemberwiseInit(.public)
 public struct Output: Codable, Hashable, Sendable {
     @Init(default: nil)
-    public let bool: Bool?
-    @Init(default: "")
-    public let string:String
+    public var calculation:Bool?
 }
 
-extension Output {
-    public var calculation:Bool {
-        bool ?? false
-    }
-}

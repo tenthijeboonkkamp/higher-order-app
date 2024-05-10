@@ -41,7 +41,7 @@ extension Application {
                             Text("store.output.calculation == false")
                         }
                         
-                        Text("\(store.output?.string ?? "")")
+                        Text("\(store.string)")
                         
                         TextField("string", text: $store.input.string)
                         
